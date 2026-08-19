@@ -49,7 +49,7 @@ verifyConfig (Config cfg) =
 describeTask :: Config -> Doc
 describeTask (Config cfg) = text . pack $ either
   (const "Error in task configuration!")
-  (\(_,_,_,_,_,_,(visible_facts,_)) -> visible_facts)
+  (\(_,_,_,_,_,_,_,(visible_facts,_)) -> visible_facts)
   (parseConfig cfg)
 
 initialTask :: Config -> Code
@@ -61,7 +61,7 @@ initialTask (Config cfg) = Code $
       "% Any additional definitions can go below this line"
       newDecls
   where
-    (_,_,_,_,_,specs,_) = parseConfig cfg `orError` "config should have been validated earlier"
+    (_,_,_,_,_,_,specs,_) = parseConfig cfg `orError` "config should have been validated earlier"
     newDecls = mapMaybe (\(Spec _ _ _ _ r) -> newPredDesc r) specs
     newPredDesc (NewPredDecl _ desc) = Just desc
     newPredDesc StatementToCheck{} = Nothing
@@ -79,7 +79,7 @@ checkTask
   -> Code
   -> m ()
 checkTask reject inform drawPicture (Config cfg) (Code input) = do
-  let (globalTO,treeStyle,includeTask,includeHidden,allowListMatching,specs,(visible_facts,hidden_facts))
+  let (globalTO,treeStyle,includeTask,includeHidden,allowListMatching,_,specs,(visible_facts,hidden_facts))
         = parseConfig cfg `orError` "config should have been validated earlier"
       drawTree tree = do
         svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
