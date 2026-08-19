@@ -10,6 +10,7 @@ module Prolog.Programming.Task (
   verifyConfig,
   describeTask,
   initialTask,
+  showSWISHButton,
 ) where
 
 import Prolog.Programming.Data
@@ -66,6 +67,11 @@ initialTask (Config cfg) = Code $
     newPredDesc (NewPredDecl _ desc) = Just desc
     newPredDesc StatementToCheck{} = Nothing
     newPredDesc QueryWithAnswers{} = Nothing
+
+showSWISHButton :: Config -> Bool
+showSWISHButton (Config cfg) = showButtonCfg
+  where
+    (_,_,_,_,_,showButtonCfg,_,_) = parseConfig cfg `orError` "config should have been validated earlier"
 
 orError :: Either a b -> String -> b
 orError x str = fromRight (error str) x
