@@ -9,6 +9,8 @@ module Prolog.Programming.Task (
   exampleConfig,
   verifyConfig,
   describeTask,
+  taskDefinitions,
+  taskDefinitionsIncluded,
   initialTask,
   showSWISHButton,
 ) where
@@ -70,6 +72,22 @@ initialTask (Config cfg) = Code $
     newPredDesc (NewPredDecl _ desc) = Just desc
     newPredDesc StatementToCheck{} = Nothing
     newPredDesc QueryWithAnswers{} = Nothing
+
+taskDefinitions :: Config -> Either ParseError [Clause]
+taskDefinitions (Config cfg) =
+  case parseConfig cfg of
+    Left err       -> Left err
+    Right (_, _, _, _, _, _, _, (visibleFacts, _)) ->
+      consultString visibleFacts
+
+taskDefinitionsIncluded :: Config -> Bool
+taskDefinitionsIncluded (Config cfg) =
+  case parseConfig cfg of
+    Left _         -> False
+    Right (_, _, incTask, _, _, _, _, _) -> case incTask of
+      Yes      -> True
+      Filtered -> True
+      No{}     -> False
 
 showSWISHButton :: Config -> Bool
 showSWISHButton (Config cfg) = showButtonCfg
