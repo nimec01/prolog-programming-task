@@ -45,7 +45,10 @@ import Text.PrettyPrint.Leijen.Text (
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
-  either (fail . show) (\_ -> return ()) $ parseConfig cfg
+  case parseConfig cfg of
+    Left err -> fail $ show err
+    Right (_,_,_,Yes,_, True, _, _) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
+    _ -> pure ()
 
 describeTask :: Config -> Doc
 describeTask (Config cfg) = text . pack $ either
