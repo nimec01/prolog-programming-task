@@ -87,7 +87,7 @@ taskDefinitionsIncluded (Config cfg) =
     Right (_, _, incTask, _, _, _, _, _) -> case incTask of
       Yes      -> True
       Filtered -> True
-      No{}     -> False
+      No ()     -> False
 
 showSWISHButton :: Config -> Bool
 showSWISHButton (Config cfg) = showButtonCfg
