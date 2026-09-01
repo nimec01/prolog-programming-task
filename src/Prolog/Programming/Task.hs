@@ -49,7 +49,10 @@ verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
   case parseConfig cfg of
     Left err -> fail $ show err
-    Right (_,_,_,Yes,_, True, _, _) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
+    Right (_,_,_,Yes,_, True, _, (_,hiddenFacts)) -> case consultString hiddenFacts of
+        Left err -> fail $ show err
+        Right (_:_) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
+        _ -> pure ()
     _ -> pure ()
 
 describeTask :: Config -> Doc
