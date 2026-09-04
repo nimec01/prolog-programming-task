@@ -9,7 +9,10 @@ module Prolog.Programming.Task (
   exampleConfig,
   verifyConfig,
   describeTask,
+  taskDefinitions,
+  taskDefinitionsIncluded,
   initialTask,
+  showSWISHButton,
 ) where
 
 import Prolog.Programming.Data
@@ -44,12 +47,18 @@ import Text.PrettyPrint.Leijen.Text (
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
-  either (fail . show) (\_ -> return ()) $ parseConfig cfg
+  case parseConfig cfg of
+    Left err -> fail $ show err
+    Right (_,_,_,Yes,_, True, _, (_,hiddenFacts)) -> case consultString hiddenFacts of
+        Left err -> fail $ show err
+        Right (_:_) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
+        _ -> pure ()
+    _ -> pure ()
 
 describeTask :: Config -> Doc
 describeTask (Config cfg) = text . pack $ either
   (const "Error in task configuration!")
-  (\(_,_,_,_,_,_,(visible_facts,_)) -> visible_facts)
+  (\(_,_,_,_,_,_,_,(visible_facts,_)) -> visible_facts)
   (parseConfig cfg)
 
 initialTask :: Config -> Code
@@ -61,11 +70,32 @@ initialTask (Config cfg) = Code $
       "% Any additional definitions can go below this line"
       newDecls
   where
-    (_,_,_,_,_,specs,_) = parseConfig cfg `orError` "config should have been validated earlier"
+    (_,_,_,_,_,_,specs,_) = parseConfig cfg `orError` "config should have been validated earlier"
     newDecls = mapMaybe (\(Spec _ _ _ _ r) -> newPredDesc r) specs
     newPredDesc (NewPredDecl _ desc) = Just desc
     newPredDesc StatementToCheck{} = Nothing
     newPredDesc QueryWithAnswers{} = Nothing
+
+taskDefinitions :: Config -> Either ParseError [Clause]
+taskDefinitions (Config cfg) =
+  case parseConfig cfg of
+    Left err       -> Left err
+    Right (_, _, _, _, _, _, _, (visibleFacts, _)) ->
+      consultString visibleFacts
+
+taskDefinitionsIncluded :: Config -> Bool
+taskDefinitionsIncluded (Config cfg) =
+  case parseConfig cfg of
+    Left _         -> False
+    Right (_, _, incTask, _, _, _, _, _) -> case incTask of
+      Yes      -> True
+      Filtered -> True
+      No ()     -> False
+
+showSWISHButton :: Config -> Bool
+showSWISHButton (Config cfg) = showButtonCfg
+  where
+    (_,_,_,_,_,showButtonCfg,_,_) = parseConfig cfg `orError` "config should have been validated earlier"
 
 orError :: Either a b -> String -> b
 orError x str = fromRight (error str) x
@@ -79,7 +109,7 @@ checkTask
   -> Code
   -> m ()
 checkTask reject inform drawPicture (Config cfg) (Code input) = do
-  let (globalTO,treeStyle,includeTask,includeHidden,allowListMatching,specs,(visible_facts,hidden_facts))
+  let (globalTO,treeStyle,includeTask,includeHidden,allowListMatching,_,specs,(visible_facts,hidden_facts))
         = parseConfig cfg `orError` "config should have been validated earlier"
       drawTree tree = do
         svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree

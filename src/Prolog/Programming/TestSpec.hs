@@ -1,9 +1,9 @@
 module Prolog.Programming.TestSpec where
 
-import Data.Maybe (listToMaybe)
 import Data.Void ( Void )
 
 import Language.Prolog (Term (..))
+import Control.Applicative ((<|>))
 
 type TimeoutDuration = Int
 
@@ -14,6 +14,7 @@ type IncludeHidden = Include Void
 data Include a = Yes | Filtered | No a
 
 type AllowListMatching = Bool
+type ShowSWISHButton = Bool
 
 data SpecLine
   = TimeoutSpec TimeoutDuration
@@ -21,18 +22,30 @@ data SpecLine
   | IncludeTaskSpec IncludeTask
   | IncludeHiddenSpec IncludeHidden
   | ListMatchSpec AllowListMatching
+  | ShowsSWISHButtonSpec ShowSWISHButton
   | TestSpec Spec
 
-partitionSpecLine :: [SpecLine] -> (Maybe TimeoutDuration, Maybe TreeStyle, Maybe IncludeTask, Maybe IncludeHidden, Maybe AllowListMatching, [Spec])
-partitionSpecLine = (\((ts,ss,ihs,its,lms),xs) -> (listToMaybe ts, listToMaybe ss, listToMaybe ihs, listToMaybe its, listToMaybe lms,xs)) . mconcat . map sortLine
+data TaskConfig m = TaskConfig 
+  { mTimeout :: m TimeoutDuration
+  , mStyle :: m TreeStyle
+  , mIncTask :: m IncludeTask
+  , mIncHidden :: m IncludeHidden
+  , mListMatch :: m AllowListMatching
+  , mSWISHButton :: m ShowSWISHButton
+  , specifications :: [Spec]
+  }
+
+partitionSpecLine :: [SpecLine] -> TaskConfig Maybe
+partitionSpecLine = foldl (flip combine) (TaskConfig Nothing Nothing Nothing Nothing Nothing Nothing [])
   where
-    -- nesting tuples because there is no Monoid instance for 6-tuples
-    sortLine (TimeoutSpec t)       = (([t],[],[],[],[]),[])
-    sortLine (TreeStyleSpec s)     = (([],[s],[],[],[]),[])
-    sortLine (IncludeTaskSpec i)   = (([],[],[i],[],[]),[])
-    sortLine (IncludeHiddenSpec i) = (([],[],[],[i],[]),[])
-    sortLine (ListMatchSpec b)     = (([],[],[],[],[b]),[])
-    sortLine (TestSpec x)          = (([],[],[],[],[]),[x])
+    combine (TimeoutSpec s) spec = spec { mTimeout = mTimeout spec <|> Just s }
+    combine (TreeStyleSpec s) spec = spec { mStyle = mStyle spec <|> Just s }
+    combine (IncludeTaskSpec s) spec = spec { mIncTask = mIncTask spec <|> Just s }
+    combine (IncludeHiddenSpec s) spec = spec { mIncHidden = mIncHidden spec <|> Just s }
+    combine (ListMatchSpec s) spec = spec { mListMatch = mListMatch spec <|> Just s }
+    combine (ShowsSWISHButtonSpec s) spec = spec { mSWISHButton = mSWISHButton spec <|> Just s }
+    combine (TestSpec s) spec = spec { specifications = specifications spec ++ [s] }
+
 
 data Spec = Spec Visibility Visualize Expection Timeout Requirement
   deriving Show

@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Prolog.Programming.Parser (
   parseConfig,
   ) where
@@ -16,21 +17,21 @@ import Text.Parsec
 
 parseConfig
   :: String
-  -> Either ParseError (TimeoutDuration, TreeStyle, IncludeTask, IncludeHidden, AllowListMatching, [Spec], (String, String))
+  -> Either ParseError (TimeoutDuration, TreeStyle, IncludeTask, IncludeHidden, AllowListMatching, ShowSWISHButton, [Spec], (String, String))
 parseConfig = parse configuration "(config)"
 
-configuration :: Parsec String () (TimeoutDuration, TreeStyle, IncludeTask, IncludeHidden, AllowListMatching, [Spec], (String, String))
-configuration = (\(d,st,it,ih,lm,xs) s -> (d,st,it,ih,lm,xs,s)) <$> specification <*> sourceText
+configuration :: Parsec String () (TimeoutDuration, TreeStyle, IncludeTask, IncludeHidden, AllowListMatching, ShowSWISHButton, [Spec], (String, String))
+configuration = (\(d,st,it,ih,lm,sb,xs) s -> (d,st,it,ih,lm,sb,xs,s)) <$> specification <*> sourceText
 
-specification :: Parsec String () (TimeoutDuration,TreeStyle,IncludeTask,IncludeHidden,AllowListMatching,[Spec])
+specification :: Parsec String () (TimeoutDuration,TreeStyle,IncludeTask,IncludeHidden,AllowListMatching,ShowSWISHButton,[Spec])
 specification = do
   lines' <- commentBlock
   timeoutStyleAndSpecs <- zip [1 :: Integer ..] lines' `forM` \t ->
     case parseSpecLine t of
       Right spec -> return spec
       Left err   -> fail (show err)
-  let (mTimeout,mStyle,mIncTask,mIncHidden,mListMatch,specs) = partitionSpecLine $ catMaybes timeoutStyleAndSpecs
-  pure (fromMaybe 10000 mTimeout, fromMaybe QueryStyle mStyle, fromMaybe Yes mIncTask, fromMaybe Yes mIncHidden, fromMaybe True mListMatch, specs)
+  let TaskConfig {..} = partitionSpecLine $ catMaybes timeoutStyleAndSpecs
+  pure (fromMaybe 10000 mTimeout, fromMaybe QueryStyle mStyle, fromMaybe Yes mIncTask, fromMaybe Yes mIncHidden, fromMaybe True mListMatch, fromMaybe False mSWISHButton, specifications)
   where
     parseSpecLine :: (Integer, String) -> Either ParseError (Maybe SpecLine)
     parseSpecLine (i, s) = parse (
@@ -40,6 +41,7 @@ specification = do
                         <|> IncludeHiddenSpec <$> try includeHidden
                         <|> IncludeTaskSpec <$> try includeTask
                         <|> ListMatchSpec <$> try allowListMatching
+                        <|> ShowsSWISHButtonSpec <$> try showSWISHButton
                         <|> TestSpec <$> (try newPredDeclParser <|> specLine)))
         ) <* eof)
         ("Specification line " ++ show i) s
@@ -87,6 +89,11 @@ specification = do
 
     allowListMatching = do
       void $ string "Allow list pattern matching:"
+      spaces
+      True <$ string "yes" <|> False <$ string "no"
+
+    showSWISHButton = do
+      void $ string "Show SWISH button:"
       spaces
       True <$ string "yes" <|> False <$ string "no"
 
