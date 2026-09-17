@@ -8,7 +8,9 @@ instance Eq Clause where
   Clause ls1 rs1 == Clause ls2 rs2 = ls1 == ls2 && rs1 == rs2
   _ == _ = False
 
-data ProblemType = NoUnusedVariables
+data ProblemType
+  = NoUnusedVariables
+  | RestrictCutUsage
   deriving (Show, Eq)
 
 data Problem = Problem

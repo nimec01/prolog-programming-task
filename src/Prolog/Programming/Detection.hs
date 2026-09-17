@@ -14,12 +14,15 @@ import Data.Text.Lazy (pack)
 import Language.Prolog (Clause, Program, consultString)
 import Prolog.Programming.Detection.Helper (definesSamePredicate)
 import Prolog.Programming.Detection.Rules.NoUnusedVariables (noUnusedVariables)
+import Prolog.Programming.Detection.Rules.RestrictCutUsage (restrictCutUsageRule)
 import Prolog.Programming.Detection.Types (DetectionConfig (DetectionConfig), Problem (..), Rule (..))
 import Text.PrettyPrint.Leijen.Text (Doc, indent, text, vsep)
 
 rules :: [Rule]
 rules =
-  [noUnusedVariables]
+  [ noUnusedVariables,
+    restrictCutUsageRule
+  ]
 
 testCheck :: String -> IO [Problem]
 testCheck code = case consultString code of

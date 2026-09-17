@@ -33,6 +33,7 @@ library
   other-modules:
       Prolog.Programming.Detection.Helper
       Prolog.Programming.Detection.Rules.NoUnusedVariables
+      Prolog.Programming.Detection.Rules.RestrictCutUsage
       Prolog.Programming.ExampleConfig
       Prolog.Programming.Helper
       Prolog.Programming.Parser
