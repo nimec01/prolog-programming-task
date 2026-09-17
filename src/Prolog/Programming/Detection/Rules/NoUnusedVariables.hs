@@ -2,7 +2,7 @@
 
 module Prolog.Programming.Detection.Rules.NoUnusedVariables (noUnusedVariables) where
 
-import Data.List (find, intersect)
+import Data.List (uncons, (\\))
 import Data.Maybe (mapMaybe)
 import Language.Prolog (Clause (..), Term (..))
 import Prolog.Programming.Detection.Helper (namedVariablesInTerm)
@@ -21,14 +21,21 @@ detect predicateDefs = map toProblem clausesWithUnusedVariable
     clausesWithUnusedVariable = mapMaybe (\c -> (c,) <$> clauseHasUnusedVariable c) predicateDefs
 
 clauseHasUnusedVariable :: Clause -> Maybe String
-clauseHasUnusedVariable (Clause (Struct _ args) rs) = fst <$> find (\(_, xs) -> null xs) leftVarsUsage
-  where
-    leftVars = concatMap namedVariablesInTerm args
-    leftVarsUsage = map (\v -> (v, filter (termUsesVariables [v]) rs)) leftVars
+clauseHasUnusedVariable (Clause (Struct _ args) rs) = case uncons args of
+  Nothing -> Nothing
+  Just (x, xs) -> case namedVariablesInTerm x of
+    [] -> Nothing
+    (v : _) -> fst <$> uncons (unusedVariables [v] (xs ++ rs))
 clauseHasUnusedVariable _ = Nothing
 
-termUsesVariables :: [String] -> Term -> Bool
-termUsesVariables vs term = not $ null $ vs `intersect` namedVariablesInTerm term
+unusedVariables :: [String] -> [Term] -> [String]
+unusedVariables vs [] = vs
+unusedVariables vs (t : ts) = unusedVariables ((vs \\ varsInT) ++ (varsInT \\ vs)) ts
+  where
+    varsInT = namedVariablesInTerm t
+
+-- termUsesVariables :: [String] -> Term -> Bool
+-- termUsesVariables vs term = not $ null $ vs `intersect` namedVariablesInTerm term
 
 toProblem :: (Clause, String) -> Problem
 toProblem (clause, unused) =
