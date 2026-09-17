@@ -44,6 +44,8 @@ import Text.Parsec (ParseError)
 import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
   )
+import Prolog.Programming.Detection (checkForProblems, displayProblems)
+import Prolog.Programming.Detection.Types (DetectionConfig(..))
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
@@ -174,6 +176,14 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
                 ++ if notRun > 0 -- only show remaining tests if there is at least one test that was not run
                    then ", tests not run: " ++ show notRun
                    else "")
+      
+      case checkForProblems (DetectionConfig {}) inProg of
+        [] -> pure ()
+        pbs-> inform $ vcat
+          [ text "Here are some suggestions for your code."
+          , displayProblems pbs
+          ]
+      
 
 consultStringsAndFilter :: String -> (Clause -> Bool) -> String -> (Clause -> Bool) -> Either ParseError [Clause]
 consultStringsAndFilter visibleDefs keepVisible hiddenDefs keepHidden = do

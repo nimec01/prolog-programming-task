@@ -38,6 +38,8 @@ library:
   exposed-modules:
     - Prolog.Programming.Data
     - Prolog.Programming.Task
+    - Prolog.Programming.Detection
+    - Prolog.Programming.Detection.Types
 
 executables:
   test-task-prolog:
