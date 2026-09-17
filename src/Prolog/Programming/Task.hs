@@ -45,7 +45,7 @@ import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
   )
 import Prolog.Programming.Detection (checkForProblems, displayProblems)
-import Prolog.Programming.Detection.Types (DetectionConfig(..))
+import Prolog.Programming.Detection.Config (defaultDetectionConfig)
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
@@ -177,7 +177,7 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
                    then ", tests not run: " ++ show notRun
                    else "")
       
-      case checkForProblems (DetectionConfig {}) inProg of
+      case checkForProblems defaultDetectionConfig inProg of
         [] -> pure ()
         pbs-> inform $ vcat
           [ text "Here are some suggestions for your code."

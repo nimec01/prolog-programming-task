@@ -5,7 +5,11 @@ import Prolog.Programming.Detection.Helper (termIsCut)
 import Prolog.Programming.Detection.Types (Problem (..), ProblemType (RestrictCutUsage), Rule (..))
 
 restrictCutUsageRule :: Rule
-restrictCutUsageRule = Rule {detectProblems = detect}
+restrictCutUsageRule =
+  Rule
+    { ruleDetect = detect,
+      ruleProblemType = RestrictCutUsage
+    }
 
 detect :: [Clause] -> [Problem]
 detect clauses = map toProblem clausesWithCuts
@@ -21,5 +25,5 @@ toProblem clause =
   Problem
     { problemType = RestrictCutUsage,
       problemClause = clause,
-      hint = Just "Don't use the cut (!) operator."
+      problemHint = Just "Don't use the cut (!) operator."
     }

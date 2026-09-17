@@ -6,10 +6,14 @@ import Data.List (find, intersect)
 import Data.Maybe (mapMaybe)
 import Language.Prolog (Clause (..), Term (..))
 import Prolog.Programming.Detection.Helper (namedVariablesInTerm)
-import Prolog.Programming.Detection.Types (Problem (..), ProblemType (NoUnusedVariables), Rule (Rule, detectProblems))
+import Prolog.Programming.Detection.Types (Problem (..), ProblemType (NoUnusedVariables), Rule (..))
 
 noUnusedVariables :: Rule
-noUnusedVariables = Rule {detectProblems = detect}
+noUnusedVariables =
+  Rule
+    { ruleDetect = detect,
+      ruleProblemType = NoUnusedVariables
+    }
 
 detect :: [Clause] -> [Problem]
 detect predicateDefs = map toProblem clausesWithUnusedVariable
@@ -31,5 +35,5 @@ toProblem (clause, unused) =
   Problem
     { problemType = NoUnusedVariables,
       problemClause = clause,
-      hint = Just $ "Replace " ++ unused ++ " with wildcard (_) ."
+      problemHint = Just $ "Replace " ++ unused ++ " with wildcard (_) ."
     }

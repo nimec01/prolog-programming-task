@@ -16,14 +16,25 @@ data ProblemType
 data Problem = Problem
   { problemType :: ProblemType,
     problemClause :: Clause,
-    hint :: Maybe String
+    problemHint :: Maybe String
   }
   deriving (Show, Eq)
 
 data Rule = Rule
-  { detectProblems :: [Clause] -> [Problem]
+  { ruleDetect :: [Clause] -> [Problem],
+    ruleProblemType :: ProblemType
   }
 
 data DetectionConfig = DetectionConfig
-  {
+  { hintProblems :: [ProblemType],
+    warnProblems :: [ProblemType],
+    errorProblems :: [ProblemType]
+  }
+
+data Severity = Hint | Warn | Error
+  deriving (Show, Eq)
+
+data ConfiguredRule = ConfiguredRule
+  { rule :: Rule,
+    severity :: Severity
   }

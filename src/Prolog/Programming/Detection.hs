@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 
 module Prolog.Programming.Detection
   ( testCheck,
@@ -12,56 +13,50 @@ import Data.List (groupBy, intersperse, uncons)
 import Data.Maybe (mapMaybe)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause, Program, consultString)
+import Prolog.Programming.Detection.Config (configuredRules, defaultDetectionConfig)
 import Prolog.Programming.Detection.Helper (definesSamePredicate)
-import Prolog.Programming.Detection.Rules.NoUnusedVariables (noUnusedVariables)
-import Prolog.Programming.Detection.Rules.RestrictCutUsage (restrictCutUsageRule)
-import Prolog.Programming.Detection.Types (DetectionConfig (DetectionConfig), Problem (..), Rule (..))
+import Prolog.Programming.Detection.Types (ConfiguredRule (..), DetectionConfig (..), Problem (..), Rule (..), Severity)
 import Text.PrettyPrint.Leijen.Text (Doc, indent, text, vsep)
 
-rules :: [Rule]
-rules =
-  [ noUnusedVariables,
-    restrictCutUsageRule
-  ]
-
-testCheck :: String -> IO [Problem]
+testCheck :: String -> IO [(Severity, Problem)]
 testCheck code = case consultString code of
   Left err -> do
     print err
     pure []
-  Right prog -> pure $ checkForProblems (DetectionConfig {}) prog
+  Right prog -> pure $ checkForProblems defaultDetectionConfig prog
 
-checkForProblems :: DetectionConfig -> Program -> [Problem]
-checkForProblems _ clauses =
+checkForProblems :: DetectionConfig -> Program -> [(Severity, Problem)]
+checkForProblems cfg clauses =
   filterFirstProblemPerClause $
-    checkForProblems' $
+    checkForProblems' cfg $
       groupBy definesSamePredicate clauses
 
-checkForProblems' :: [[Clause]] -> [Problem]
-checkForProblems' = concatMap checkPredicateDefinitionsForProblem
+checkForProblems' :: DetectionConfig -> [[Clause]] -> [(Severity, Problem)]
+checkForProblems' cfg = concatMap (checkPredicateDefinitionsForProblem cfg)
 
-checkPredicateDefinitionsForProblem :: [Clause] -> [Problem]
-checkPredicateDefinitionsForProblem clauses =
+checkPredicateDefinitionsForProblem :: DetectionConfig -> [Clause] -> [(Severity, Problem)]
+checkPredicateDefinitionsForProblem cfg clauses =
   foldl
-    (\acc rule -> if null acc then detectProblems rule clauses else acc)
+    (\acc configuredRule -> if null acc then map (severity configuredRule,) $ ruleDetect (rule configuredRule) clauses else acc)
     []
-    rules
+    $ configuredRules cfg
 
-filterFirstProblemPerClause :: [Problem] -> [Problem]
+filterFirstProblemPerClause :: [(Severity, Problem)] -> [(Severity, Problem)]
 filterFirstProblemPerClause pbs = mapMaybe (fmap fst . uncons) groupedByClause
   where
-    groupedByClause = groupBy (\a b -> problemClause a == problemClause b) pbs
+    groupedByClause = groupBy (\(_, a) (_, b) -> problemClause a == problemClause b) pbs
 
-displayProblems :: [Problem] -> Doc
+displayProblems :: [(Severity, Problem)] -> Doc
 displayProblems pbs = vsep $ intersperse (text "-----") $ map displayProblem pbs
 
-displayProblem :: Problem -> Doc
-displayProblem Problem {..} =
+displayProblem :: (Severity, Problem) -> Doc
+displayProblem (sev, Problem {..}) =
   vsep $
     [ text "For Clause:",
       indent 2 $ text $ pack $ show problemClause,
-      text "Type: " <> text (pack $ show problemType)
+      text "Type: " <> text (pack $ show problemType),
+      text "Severity: " <> text (pack $ show sev)
     ]
-      ++ case hint of
+      ++ case problemHint of
         Nothing -> []
         Just msg -> [text $ pack $ "Hint: " ++ msg]
