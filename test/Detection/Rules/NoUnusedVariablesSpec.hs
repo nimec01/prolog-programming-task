@@ -89,3 +89,23 @@ spec = describe "NoUnusedVariables" $ do
             }
      in test [clause]
           `shouldBe` []
+  it "doesn't warn on example 5" $ do
+    let term name = Struct name [Var (VariableName 0 "X"), Var (VariableName 0 "X")]
+        clause =
+          Clause
+            { lhs = term "p",
+              rhs_ = []
+            }
+     in test [clause]
+          `shouldBe` []
+  it "doesn't warn on example 6" $ do
+    let clause =
+          Clause
+            { lhs = Struct "p" [Var (VariableName 0 "X")],
+              rhs_ =
+                [ Struct "=" [Var (VariableName 0 "X"), Struct "." [Var (VariableName 0 "Z"), Var (VariableName 0 "Zs")]],
+                  Struct "q" [Var (VariableName 0 "Z"), Var (VariableName 0 "Zs")]
+                ]
+            }
+     in test [clause]
+          `shouldBe` []
