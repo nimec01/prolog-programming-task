@@ -40,6 +40,7 @@ library:
     - Prolog.Programming.Task
     - Prolog.Programming.Detection
     - Prolog.Programming.Detection.Types
+    - Prolog.Programming.Detection.Config
 
 executables:
   test-task-prolog:

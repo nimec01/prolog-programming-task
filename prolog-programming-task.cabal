@@ -30,6 +30,7 @@ library
       Prolog.Programming.Task
       Prolog.Programming.Detection
       Prolog.Programming.Detection.Types
+      Prolog.Programming.Detection.Config
   other-modules:
       Prolog.Programming.Detection.Config
       Prolog.Programming.Detection.Helper
@@ -86,6 +87,7 @@ test-suite prolog-programming-task-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Detection.Rules.NoUnusedVariablesSpec
       Paths_prolog_programming_task
   hs-source-dirs:
       test
