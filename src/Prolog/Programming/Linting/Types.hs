@@ -25,7 +25,7 @@ data Rule = Rule
     ruleProblemType :: ProblemType
   }
 
-data DetectionConfig = DetectionConfig
+data LintConfig = LintConfig
   { hintProblems :: [ProblemType],
     warnProblems :: [ProblemType],
     errorProblems :: [ProblemType]

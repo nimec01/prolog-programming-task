@@ -45,7 +45,7 @@ import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent, linebreak,
   )
 import Prolog.Programming.Linting (checkForProblems, displayProblems)
-import Prolog.Programming.Linting.Types (Severity(..), DetectionConfig (DetectionConfig, hintProblems, warnProblems, errorProblems))
+import Prolog.Programming.Linting.Types (Severity(..), LintConfig (..))
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
@@ -178,7 +178,7 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
                    else "")
       
       let problemsForType ty = map snd $ filter ((== ty) . fst) dtRules
-          dtConfig = DetectionConfig
+          dtConfig = LintConfig
             { hintProblems = problemsForType Hint
             , warnProblems = problemsForType Warn
             , errorProblems = problemsForType Error

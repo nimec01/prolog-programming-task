@@ -13,9 +13,9 @@ import Data.List (groupBy, intersperse, uncons)
 import Data.Maybe (mapMaybe)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause, Program, consultString)
-import Prolog.Programming.Linting.Config (configuredRules, defaultDetectionConfig)
+import Prolog.Programming.Linting.Config (configuredRules, defaultLintConfig)
 import Prolog.Programming.Linting.Helper (definesSamePredicate)
-import Prolog.Programming.Linting.Types (ConfiguredRule (..), DetectionConfig (..), Problem (..), Rule (..), Severity)
+import Prolog.Programming.Linting.Types (ConfiguredRule (..), LintConfig (..), Problem (..), Rule (..), Severity)
 import Text.PrettyPrint.Leijen.Text (Doc, brackets, indent, linebreak, text, vsep, (<+>))
 
 testCheck :: String -> IO [(Severity, Problem)]
@@ -23,18 +23,18 @@ testCheck code = case consultString code of
   Left err -> do
     print err
     pure []
-  Right prog -> pure $ checkForProblems defaultDetectionConfig prog
+  Right prog -> pure $ checkForProblems defaultLintConfig prog
 
-checkForProblems :: DetectionConfig -> Program -> [(Severity, Problem)]
+checkForProblems :: LintConfig -> Program -> [(Severity, Problem)]
 checkForProblems cfg clauses =
   filterFirstProblemPerClause $
     checkForProblems' cfg $
       groupBy definesSamePredicate clauses
 
-checkForProblems' :: DetectionConfig -> [[Clause]] -> [(Severity, Problem)]
+checkForProblems' :: LintConfig -> [[Clause]] -> [(Severity, Problem)]
 checkForProblems' cfg = concatMap (checkPredicateDefinitionsForProblem cfg)
 
-checkPredicateDefinitionsForProblem :: DetectionConfig -> [Clause] -> [(Severity, Problem)]
+checkPredicateDefinitionsForProblem :: LintConfig -> [Clause] -> [(Severity, Problem)]
 checkPredicateDefinitionsForProblem cfg clauses =
   foldl
     (\acc configuredRule -> if null acc then map (severity configuredRule,) $ ruleDetect (rule configuredRule) clauses else acc)

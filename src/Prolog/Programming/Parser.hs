@@ -78,7 +78,7 @@ specification = do
     , fromMaybe Yes mIncHidden
     , fromMaybe True mListMatch
     , fromMaybe False mSWISHButton
-    , fromMaybe [] mDetectionConfig
+    , fromMaybe [] mLintConfig
     , specifications
     )
   where
@@ -91,7 +91,7 @@ specification = do
                         <|> IncludeTaskSpec <$> try includeTask
                         <|> ListMatchSpec <$> try allowListMatching
                         <|> ShowsSWISHButtonSpec <$> try showSWISHButton
-                        <|> DetectionConfigSpec <$> try detectionConfig
+                        <|> LintConfigSpec <$> try lintConfig
                         <|> TestSpec <$> (try newPredDeclParser <|> specLine)))
         ) <* eof)
         ("Specification line " ++ show i) s
@@ -147,26 +147,26 @@ specification = do
       spaces
       True <$ string "yes" <|> False <$ string "no"
 
-    detectionConfig = do
-      void $ string "Detection rules:"
+    lintConfig = do
+      void $ string "Linting rules:"
       spaces
-      rules <- detectionRule `sepBy` char ','
+      rules <- lintRule `sepBy` char ','
       pure $ catMaybes rules
 
-    detectionRule = do
+    lintRule = do
       spaces
-      sev <- detectionSeverity
+      sev <- lintSeverity
       void $ char ':'
-      rule <- detectionRuleName
+      rule <- lintRuleName
       spaces
       pure $ (sev,) <$> rule
 
-    detectionSeverity = 
+    lintSeverity = 
        LT.Hint <$ string "hint"
         <|> LT.Warn <$ string "warn"
         <|> LT.Error <$ string "error"
 
-    detectionRuleName = do
+    lintRuleName = do
       ruleName <- many1 alphaNum
       pure $ readMaybe ruleName
 

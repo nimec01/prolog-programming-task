@@ -7,18 +7,18 @@ import Language.Prolog
     VariableName (VariableName),
   )
 import Prolog.Programming.Linting (checkForProblems)
-import Prolog.Programming.Linting.Config (defaultDetectionConfig)
+import Prolog.Programming.Linting.Config (defaultLintConfig)
 import Prolog.Programming.Linting.Types
-  ( DetectionConfig (..),
+  ( LintConfig (..),
     Problem (Problem, problemClause, problemHint, problemType),
     ProblemType (RestrictCutUsage),
     Severity (..),
   )
 import Test.Hspec (Spec, describe, it, shouldBe)
 
-config :: DetectionConfig
+config :: LintConfig
 config =
-  DetectionConfig
+  LintConfig
     { hintProblems = [],
       warnProblems = [],
       errorProblems = [RestrictCutUsage]
