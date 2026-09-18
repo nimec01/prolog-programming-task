@@ -45,14 +45,13 @@ import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
   )
 import Prolog.Programming.Detection (checkForProblems, displayProblems)
-import Prolog.Programming.Detection.Config (defaultDetectionConfig)
-import Prolog.Programming.Detection.Types (Severity(..))
+import Prolog.Programming.Detection.Types (Severity(..), DetectionConfig (DetectionConfig, hintProblems, warnProblems, errorProblems))
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
   case parseConfig cfg of
     Left err -> fail $ show err
-    Right (_,_,_,Yes,_, True, _, (_,hiddenFacts)) -> case consultString hiddenFacts of
+    Right (_,_,_,Yes,_, True, _, _, (_,hiddenFacts)) -> case consultString hiddenFacts of
         Left err -> fail $ show err
         Right (_:_) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
         _ -> pure ()
@@ -61,7 +60,7 @@ verifyConfig (Config cfg) =
 describeTask :: Config -> Doc
 describeTask (Config cfg) = text . pack $ either
   (const "Error in task configuration!")
-  (\(_,_,_,_,_,_,_,(visible_facts,_)) -> visible_facts)
+  (\(_,_,_,_,_,_,_,_,(visible_facts,_)) -> visible_facts)
   (parseConfig cfg)
 
 initialTask :: Config -> Code
@@ -73,7 +72,7 @@ initialTask (Config cfg) = Code $
       "% Any additional definitions can go below this line"
       newDecls
   where
-    (_,_,_,_,_,_,specs,_) = parseConfig cfg `orError` "config should have been validated earlier"
+    (_,_,_,_,_,_,_,specs,_) = parseConfig cfg `orError` "config should have been validated earlier"
     newDecls = mapMaybe (\(Spec _ _ _ _ r) -> newPredDesc r) specs
     newPredDesc (NewPredDecl _ desc) = Just desc
     newPredDesc StatementToCheck{} = Nothing
@@ -83,14 +82,14 @@ taskDefinitions :: Config -> Either ParseError [Clause]
 taskDefinitions (Config cfg) =
   case parseConfig cfg of
     Left err       -> Left err
-    Right (_, _, _, _, _, _, _, (visibleFacts, _)) ->
+    Right (_, _, _, _, _, _, _, _, (visibleFacts, _)) ->
       consultString visibleFacts
 
 taskDefinitionsIncluded :: Config -> Bool
 taskDefinitionsIncluded (Config cfg) =
   case parseConfig cfg of
     Left _         -> False
-    Right (_, _, incTask, _, _, _, _, _) -> case incTask of
+    Right (_, _, incTask, _, _, _, _, _, _) -> case incTask of
       Yes      -> True
       Filtered -> True
       No ()     -> False
@@ -98,7 +97,7 @@ taskDefinitionsIncluded (Config cfg) =
 showSWISHButton :: Config -> Bool
 showSWISHButton (Config cfg) = showButtonCfg
   where
-    (_,_,_,_,_,showButtonCfg,_,_) = parseConfig cfg `orError` "config should have been validated earlier"
+    (_,_,_,_,_,showButtonCfg,_,_, _) = parseConfig cfg `orError` "config should have been validated earlier"
 
 orError :: Either a b -> String -> b
 orError x str = fromRight (error str) x
@@ -112,7 +111,7 @@ checkTask
   -> Code
   -> m ()
 checkTask reject inform drawPicture (Config cfg) (Code input) = do
-  let (globalTO,treeStyle,includeTask,includeHidden,allowListMatching,_,specs,(visible_facts,hidden_facts))
+  let (globalTO,treeStyle,includeTask,includeHidden,allowListMatching,_,dtRules,specs,(visible_facts,hidden_facts))
         = parseConfig cfg `orError` "config should have been validated earlier"
       drawTree tree = do
         svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
@@ -178,7 +177,13 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
                    then ", tests not run: " ++ show notRun
                    else "")
       
-      case checkForProblems defaultDetectionConfig inProg of
+      let problemsForType ty = map snd $ filter ((== ty) . fst) dtRules
+          dtConfig = DetectionConfig
+            { hintProblems = problemsForType Hint
+            , warnProblems = problemsForType Warn
+            , errorProblems = problemsForType Error
+            }
+      case checkForProblems dtConfig inProg of
         [] -> pure ()
         pbs-> (if any (\(s,_) -> s == Error) pbs then reject else inform) $ vcat
           [ text "Here are some suggestions for your code."

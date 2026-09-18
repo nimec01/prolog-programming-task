@@ -24,6 +24,10 @@ exampleConfig = Config
  * % allow/disallow the use of [H|T] matching on list values, defaults to 'yes' (experimental: might not recognize all instances of the pattern)
  * % Allow list pattern matching: [ yes | no ]
  * % Show SWISH button: [ yes | no ]
+ * % Configure detection for code improvement suggestions by providing a comma separated list of <severity>:<rule> pairs
+ * % <severity> can be 'hint', 'warn' or 'error'
+ * % <rule> is the name of a ProblemType e.g. 'NoUnusedVariables'
+ * % Detection rules: warn:NoUnusedVariables
  * % prefixing a test with [<time out in ms>] sets a local timeout for that test
  * a_predicate(Foo,Bar): a_predicate(expected_foo1,expected_bar1), a_predicate(expected_foo2,expected_bar2)
  * a_statement_that_has_to_be_true

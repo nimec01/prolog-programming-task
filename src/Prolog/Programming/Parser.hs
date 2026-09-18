@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 module Prolog.Programming.Parser (
   parseConfig,
   ) where
@@ -14,6 +15,9 @@ import Data.Maybe                       (catMaybes, fromMaybe)
 import Language.Prolog                  (terms, term)
 
 import Text.Parsec
+import Prolog.Programming.Detection.Types (Severity,ProblemType)
+import qualified Prolog.Programming.Detection.Types as DT (Severity(..))
+import Text.Read (readMaybe)
 
 parseConfig ::
     String ->
@@ -25,6 +29,7 @@ parseConfig ::
         , IncludeHidden
         , AllowListMatching
         , ShowSWISHButton
+        , [(Severity,ProblemType)]
         , [Spec]
         , (String, String)
         )
@@ -40,10 +45,11 @@ configuration ::
         , IncludeHidden
         , AllowListMatching
         , ShowSWISHButton
+        , [(Severity,ProblemType)]
         , [Spec]
         , (String, String)
         )
-configuration = (\(d,st,it,ih,lm,sb,xs) s -> (d,st,it,ih,lm,sb,xs,s)) <$> specification <*> sourceText
+configuration = (\(d,st,it,ih,lm,sb,dc,xs) s -> (d,st,it,ih,lm,sb,dc,xs,s)) <$> specification <*> sourceText
 
 specification ::
     Parsec
@@ -55,6 +61,7 @@ specification ::
         , IncludeHidden
         , AllowListMatching
         , ShowSWISHButton
+        , [(Severity, ProblemType)]
         , [Spec]
         )
 specification = do
@@ -71,6 +78,7 @@ specification = do
     , fromMaybe Yes mIncHidden
     , fromMaybe True mListMatch
     , fromMaybe False mSWISHButton
+    , fromMaybe [] mDetectionConfig
     , specifications
     )
   where
@@ -83,6 +91,7 @@ specification = do
                         <|> IncludeTaskSpec <$> try includeTask
                         <|> ListMatchSpec <$> try allowListMatching
                         <|> ShowsSWISHButtonSpec <$> try showSWISHButton
+                        <|> DetectionConfigSpec <$> try detectionConfig
                         <|> TestSpec <$> (try newPredDeclParser <|> specLine)))
         ) <* eof)
         ("Specification line " ++ show i) s
@@ -137,6 +146,29 @@ specification = do
       void $ string "Show SWISH button:"
       spaces
       True <$ string "yes" <|> False <$ string "no"
+
+    detectionConfig = do
+      void $ string "Detection rules:"
+      spaces
+      rules <- detectionRule `sepBy` char ','
+      pure $ catMaybes rules
+
+    detectionRule = do
+      spaces
+      sev <- detectionSeverity
+      void $ char ':'
+      rule <- detectionRuleName
+      spaces
+      pure $ (sev,) <$> rule
+
+    detectionSeverity = 
+       DT.Hint <$ string "hint"
+        <|> DT.Warn <$ string "warn"
+        <|> DT.Error <$ string "error"
+
+    detectionRuleName = do
+      ruleName <- many1 alphaNum
+      pure $ readMaybe ruleName
 
     localTimeoutAnn = option id $
       localTimeout . read

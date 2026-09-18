@@ -11,7 +11,7 @@ instance Eq Clause where
 data ProblemType
   = NoUnusedVariables
   | RestrictCutUsage
-  deriving (Show, Eq)
+  deriving (Show, Read, Eq)
 
 data Problem = Problem
   { problemType :: ProblemType,

@@ -4,6 +4,7 @@ import Data.Void ( Void )
 
 import Language.Prolog (Term (..))
 import Control.Applicative ((<|>))
+import Prolog.Programming.Detection.Types (Severity, ProblemType)
 
 type TimeoutDuration = Int
 
@@ -23,6 +24,7 @@ data SpecLine
   | IncludeHiddenSpec IncludeHidden
   | ListMatchSpec AllowListMatching
   | ShowsSWISHButtonSpec ShowSWISHButton
+  | DetectionConfigSpec [(Severity, ProblemType)]
   | TestSpec Spec
 
 data TaskConfig m = TaskConfig 
@@ -32,6 +34,7 @@ data TaskConfig m = TaskConfig
   , mIncHidden :: m IncludeHidden
   , mListMatch :: m AllowListMatching
   , mSWISHButton :: m ShowSWISHButton
+  , mDetectionConfig :: m [(Severity, ProblemType)]
   , specifications :: [Spec]
   }
 
@@ -40,6 +43,7 @@ partitionSpecLine =
   foldl
     (flip combine)
     ( TaskConfig
+        Nothing
         Nothing
         Nothing
         Nothing
@@ -55,6 +59,7 @@ partitionSpecLine =
     combine (IncludeHiddenSpec s) spec = spec { mIncHidden = mIncHidden spec <|> Just s }
     combine (ListMatchSpec s) spec = spec { mListMatch = mListMatch spec <|> Just s }
     combine (ShowsSWISHButtonSpec s) spec = spec { mSWISHButton = mSWISHButton spec <|> Just s }
+    combine (DetectionConfigSpec s) spec = spec { mDetectionConfig = mDetectionConfig spec <|> Just s }
     combine (TestSpec s) spec = spec { specifications = specifications spec ++ [s] }
 
 
