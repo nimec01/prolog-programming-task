@@ -3,8 +3,7 @@
 {-# LANGUAGE TupleSections #-}
 
 module Prolog.Programming.Detection
-  ( testCheck,
-    checkForProblems,
+  ( checkForProblems,
     displayProblems,
   )
 where
