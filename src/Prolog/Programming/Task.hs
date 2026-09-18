@@ -42,7 +42,7 @@ import Language.Prolog.GraphViz.Formatting (GraphFormatting, queryStyle, resolut
 
 import Text.Parsec (ParseError)
 import Text.PrettyPrint.Leijen.Text (
-  Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
+  Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent, linebreak,
   )
 import Prolog.Programming.Detection (checkForProblems, displayProblems)
 import Prolog.Programming.Detection.Types (Severity(..), DetectionConfig (DetectionConfig, hintProblems, warnProblems, errorProblems))
@@ -186,7 +186,7 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
       case checkForProblems dtConfig inProg of
         [] -> pure ()
         pbs-> (if any (\(s,_) -> s == Error) pbs then reject else inform) $ vcat
-          [ text "Here are some suggestions for your code."
+          [ text "Your code might be improved by following some of these suggestions:" <> linebreak
           , displayProblems pbs
           ]
       

@@ -16,7 +16,7 @@ import Language.Prolog (Clause, Program, consultString)
 import Prolog.Programming.Detection.Config (configuredRules, defaultDetectionConfig)
 import Prolog.Programming.Detection.Helper (definesSamePredicate)
 import Prolog.Programming.Detection.Types (ConfiguredRule (..), DetectionConfig (..), Problem (..), Rule (..), Severity)
-import Text.PrettyPrint.Leijen.Text (Doc, indent, text, vsep)
+import Text.PrettyPrint.Leijen.Text (Doc, brackets, indent, linebreak, text, vsep, (<+>))
 
 testCheck :: String -> IO [(Severity, Problem)]
 testCheck code = case consultString code of
@@ -52,11 +52,9 @@ displayProblems pbs = vsep $ intersperse (text "-----") $ map displayProblem pbs
 displayProblem :: (Severity, Problem) -> Doc
 displayProblem (sev, Problem {..}) =
   vsep $
-    [ text "For Clause:",
-      indent 2 $ text $ pack $ show problemClause,
-      text "Type: " <> text (pack $ show problemType),
-      text "Severity: " <> text (pack $ show sev)
+    [ brackets (text $ pack $ show sev) <+> text (pack $ "Found " ++ show problemType ++ " in clause:"),
+      indent 2 $ text $ pack $ show problemClause
     ]
       ++ case problemHint of
         Nothing -> []
-        Just msg -> [text $ pack $ "Hint: " ++ msg]
+        Just msg -> [linebreak <> text (pack $ "Suggestion: " ++ msg)]
