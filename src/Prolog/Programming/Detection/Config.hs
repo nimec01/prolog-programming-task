@@ -10,13 +10,13 @@ where
 import Control.Applicative ((<|>))
 import Data.List (find)
 import Data.Maybe (mapMaybe)
-import Prolog.Programming.Detection.Rules.NoUnusedVariables (noUnusedVariables)
+import Prolog.Programming.Detection.Rules.NoUnusedVariables (noUnusedVariablesRule)
 import Prolog.Programming.Detection.Rules.RestrictCutUsage (restrictCutUsageRule)
 import Prolog.Programming.Detection.Types (ConfiguredRule (..), DetectionConfig (..), ProblemType (NoUnusedVariables, RestrictCutUsage), Rule (..), Severity (..))
 
 availableRules :: [Rule]
 availableRules =
-  [ noUnusedVariables,
+  [ noUnusedVariablesRule,
     restrictCutUsageRule
   ]
 

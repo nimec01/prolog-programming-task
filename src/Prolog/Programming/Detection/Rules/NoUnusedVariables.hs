@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 
-module Prolog.Programming.Detection.Rules.NoUnusedVariables (noUnusedVariables) where
+module Prolog.Programming.Detection.Rules.NoUnusedVariables (noUnusedVariablesRule) where
 
 import Data.List (uncons, (\\))
 import Data.Maybe (mapMaybe)
@@ -8,8 +8,8 @@ import Language.Prolog (Clause (..), Term (..))
 import Prolog.Programming.Detection.Helper (namedVariablesInTerm)
 import Prolog.Programming.Detection.Types (Problem (..), ProblemType (NoUnusedVariables), Rule (..))
 
-noUnusedVariables :: Rule
-noUnusedVariables =
+noUnusedVariablesRule :: Rule
+noUnusedVariablesRule =
   Rule
     { ruleDetect = detect,
       ruleProblemType = NoUnusedVariables
@@ -25,17 +25,14 @@ clauseHasUnusedVariable (Clause (Struct _ args) rs) = case uncons args of
   Nothing -> Nothing
   Just (x, xs) -> case namedVariablesInTerm x of
     [] -> Nothing
-    (v : _) -> fst <$> uncons (unusedVariables [v] (xs ++ rs))
+    (v : _) -> fst <$> uncons (collectUnusedVariables [v] (xs ++ rs))
 clauseHasUnusedVariable _ = Nothing
 
-unusedVariables :: [String] -> [Term] -> [String]
-unusedVariables vs [] = vs
-unusedVariables vs (t : ts) = unusedVariables ((vs \\ varsInT) ++ (varsInT \\ vs)) ts
+collectUnusedVariables :: [String] -> [Term] -> [String]
+collectUnusedVariables vs [] = vs
+collectUnusedVariables vs (t : ts) = collectUnusedVariables ((vs \\ varsInT) ++ (varsInT \\ vs)) ts
   where
     varsInT = namedVariablesInTerm t
-
--- termUsesVariables :: [String] -> Term -> Bool
--- termUsesVariables vs term = not $ null $ vs `intersect` namedVariablesInTerm term
 
 toProblem :: (Clause, String) -> Problem
 toProblem (clause, unused) =
