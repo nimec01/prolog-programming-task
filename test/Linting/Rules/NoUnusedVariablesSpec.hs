@@ -1,4 +1,4 @@
-module Detection.Rules.NoUnusedVariablesSpec where
+module Linting.Rules.NoUnusedVariablesSpec where
 
 import Language.Prolog
   ( Clause (..),

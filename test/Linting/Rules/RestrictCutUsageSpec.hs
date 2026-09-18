@@ -1,4 +1,4 @@
-module Detection.Rules.RestrictCutUsageSpec where
+module Linting.Rules.RestrictCutUsageSpec where
 
 import Language.Prolog
   ( Clause (..),
