@@ -4,7 +4,7 @@ import Data.Void ( Void )
 
 import Language.Prolog (Term (..))
 import Control.Applicative ((<|>))
-import Prolog.Programming.Detection.Types (Severity, ProblemType)
+import Prolog.Programming.Linting.Types (Severity, ProblemType)
 
 type TimeoutDuration = Int
 

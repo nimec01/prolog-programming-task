@@ -6,9 +6,9 @@ import Language.Prolog
     Term (..),
     VariableName (VariableName),
   )
-import Prolog.Programming.Detection (checkForProblems)
-import Prolog.Programming.Detection.Config (defaultDetectionConfig)
-import Prolog.Programming.Detection.Types
+import Prolog.Programming.Linting (checkForProblems)
+import Prolog.Programming.Linting.Config (defaultDetectionConfig)
+import Prolog.Programming.Linting.Types
   ( DetectionConfig (..),
     Problem (Problem, problemClause, problemHint, problemType),
     ProblemType (RestrictCutUsage),

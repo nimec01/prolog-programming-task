@@ -44,8 +44,8 @@ import Text.Parsec (ParseError)
 import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent, linebreak,
   )
-import Prolog.Programming.Detection (checkForProblems, displayProblems)
-import Prolog.Programming.Detection.Types (Severity(..), DetectionConfig (DetectionConfig, hintProblems, warnProblems, errorProblems))
+import Prolog.Programming.Linting (checkForProblems, displayProblems)
+import Prolog.Programming.Linting.Types (Severity(..), DetectionConfig (DetectionConfig, hintProblems, warnProblems, errorProblems))
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =

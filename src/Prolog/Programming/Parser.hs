@@ -15,8 +15,8 @@ import Data.Maybe                       (catMaybes, fromMaybe)
 import Language.Prolog                  (terms, term)
 
 import Text.Parsec
-import Prolog.Programming.Detection.Types (Severity,ProblemType)
-import qualified Prolog.Programming.Detection.Types as DT (Severity(..))
+import Prolog.Programming.Linting.Types (Severity,ProblemType)
+import qualified Prolog.Programming.Linting.Types as LT (Severity(..))
 import Text.Read (readMaybe)
 
 parseConfig ::
@@ -162,9 +162,9 @@ specification = do
       pure $ (sev,) <$> rule
 
     detectionSeverity = 
-       DT.Hint <$ string "hint"
-        <|> DT.Warn <$ string "warn"
-        <|> DT.Error <$ string "error"
+       LT.Hint <$ string "hint"
+        <|> LT.Warn <$ string "warn"
+        <|> LT.Error <$ string "error"
 
     detectionRuleName = do
       ruleName <- many1 alphaNum

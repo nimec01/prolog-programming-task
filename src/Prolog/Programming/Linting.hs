@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 
-module Prolog.Programming.Detection
+module Prolog.Programming.Linting
   ( checkForProblems,
     displayProblems,
   )
@@ -12,9 +12,9 @@ import Data.List (groupBy, intersperse, uncons)
 import Data.Maybe (mapMaybe)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause, Program, consultString)
-import Prolog.Programming.Detection.Config (configuredRules, defaultDetectionConfig)
-import Prolog.Programming.Detection.Helper (definesSamePredicate)
-import Prolog.Programming.Detection.Types (ConfiguredRule (..), DetectionConfig (..), Problem (..), Rule (..), Severity)
+import Prolog.Programming.Linting.Config (configuredRules, defaultDetectionConfig)
+import Prolog.Programming.Linting.Helper (definesSamePredicate)
+import Prolog.Programming.Linting.Types (ConfiguredRule (..), DetectionConfig (..), Problem (..), Rule (..), Severity)
 import Text.PrettyPrint.Leijen.Text (Doc, brackets, indent, linebreak, text, vsep, (<+>))
 
 testCheck :: String -> IO [(Severity, Problem)]

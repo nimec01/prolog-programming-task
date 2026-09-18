@@ -38,9 +38,9 @@ library:
   exposed-modules:
     - Prolog.Programming.Data
     - Prolog.Programming.Task
-    - Prolog.Programming.Detection
-    - Prolog.Programming.Detection.Types
-    - Prolog.Programming.Detection.Config
+    - Prolog.Programming.Linting
+    - Prolog.Programming.Linting.Types
+    - Prolog.Programming.Linting.Config
 
 executables:
   test-task-prolog:
