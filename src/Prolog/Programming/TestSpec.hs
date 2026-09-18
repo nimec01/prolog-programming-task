@@ -36,7 +36,18 @@ data TaskConfig m = TaskConfig
   }
 
 partitionSpecLine :: [SpecLine] -> TaskConfig Maybe
-partitionSpecLine = foldl (flip combine) (TaskConfig Nothing Nothing Nothing Nothing Nothing Nothing [])
+partitionSpecLine = 
+  foldl
+    (flip combine)
+    ( TaskConfig
+        Nothing
+        Nothing
+        Nothing
+        Nothing
+        Nothing
+        Nothing
+        []
+    )
   where
     combine (TimeoutSpec s) spec = spec { mTimeout = mTimeout spec <|> Just s }
     combine (TreeStyleSpec s) spec = spec { mStyle = mStyle spec <|> Just s }
