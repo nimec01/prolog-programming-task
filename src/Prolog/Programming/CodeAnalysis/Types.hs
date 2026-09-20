@@ -1,6 +1,14 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Prolog.Programming.CodeAnalysis.Types where
+module Prolog.Programming.CodeAnalysis.Types
+  ( ProblemType (..),
+    Problem (..),
+    Rule (..),
+    CodeAnalysisConfig (..),
+    ConfiguredRule (..),
+    Severity (..),
+  )
+where
 
 import Language.Prolog (Clause (..))
 import Text.PrettyPrint.Leijen.Text (Doc)
