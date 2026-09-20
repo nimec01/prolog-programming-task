@@ -1,7 +1,7 @@
 module Prolog.Programming.Linting.Rules.RestrictCutUsage (restrictCutUsageRule) where
 
 import Language.Prolog (Clause (..))
-import Prolog.Programming.Linting.Helper (termIsCut)
+import Prolog.Programming.Linting.Helper (termContainsCut)
 import Prolog.Programming.Linting.Types (Problem (..), ProblemType (RestrictCutUsage), Rule (..))
 
 restrictCutUsageRule :: Rule
@@ -17,7 +17,7 @@ detect clauses = map toProblem clausesWithCuts
     clausesWithCuts = filter cutExistsInClause clauses
 
 cutExistsInClause :: Clause -> Bool
-cutExistsInClause (Clause _ rhs) = any termIsCut rhs
+cutExistsInClause (Clause _ rhs) = any termContainsCut rhs
 cutExistsInClause _ = False
 
 toProblem :: Clause -> Problem
