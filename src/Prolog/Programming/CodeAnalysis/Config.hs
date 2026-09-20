@@ -20,7 +20,7 @@ availableRules =
 
 configuredRules :: CodeAnalysisConfig -> [ConfiguredRule]
 configuredRules CodeAnalysisConfig {..} =
-  ([ConfiguredRule restrictCutUsageRule Nothing | restrictCutUsage]) ++ maybe [] (singleton . ConfiguredRule noSingletonVariablesRule . Just) noSingletonVariables
+  ([ConfiguredRule restrictCutUsageRule Error | restrictCutUsage]) ++ maybe [] (singleton . ConfiguredRule noSingletonVariablesRule) noSingletonVariables
 
 defaultCodeAnalysisConfig :: CodeAnalysisConfig
 defaultCodeAnalysisConfig =

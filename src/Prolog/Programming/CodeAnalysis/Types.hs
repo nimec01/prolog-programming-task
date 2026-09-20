@@ -17,11 +17,13 @@ data ProblemType
 data Problem = Problem
   { problemType :: ProblemType,
     problemClause :: Clause,
-    problemDisplay :: Maybe Severity -> Doc
+    problemSeverity :: Severity,
+    problemDisplay :: Doc
   }
+  deriving (Show)
 
 data Rule = Rule
-  { ruleDetect :: [Clause] -> [Problem],
+  { ruleDetect :: Severity -> [Clause] -> [Problem],
     ruleProblemType :: ProblemType
   }
 
@@ -35,5 +37,5 @@ data Severity = Hint | Warn | Error
 
 data ConfiguredRule = ConfiguredRule
   { rule :: Rule,
-    severity :: Maybe Severity
+    severity :: Severity
   }

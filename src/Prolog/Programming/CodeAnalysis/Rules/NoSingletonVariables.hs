@@ -9,7 +9,7 @@ import Data.Maybe (mapMaybe)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause (..), Term (..))
 import Prolog.Programming.CodeAnalysis.Helper (namedVariablesInTerm)
-import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (NoSingletonVariables), Rule (..))
+import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (NoSingletonVariables), Rule (..), Severity)
 import Text.PrettyPrint.Leijen.Text (brackets, hsep, indent, linebreak, string, vsep)
 
 noSingletonVariablesRule :: Rule
@@ -19,8 +19,8 @@ noSingletonVariablesRule =
       ruleProblemType = NoSingletonVariables
     }
 
-detect :: [Clause] -> [Problem]
-detect predicateDefs = map toProblem clausesWithSingletonVariable
+detect :: Severity -> [Clause] -> [Problem]
+detect sev predicateDefs = map (toProblem sev) clausesWithSingletonVariable
   where
     clausesWithSingletonVariable = mapMaybe (\c -> (c,) <$> clauseHasSingletonVariable c) predicateDefs
 
@@ -38,12 +38,13 @@ collectSingletonVariables vs (t : ts) = collectSingletonVariables ((vs \\ varsIn
   where
     varsInT = namedVariablesInTerm t
 
-toProblem :: (Clause, String) -> Problem
-toProblem (clause, var) =
+toProblem :: Severity -> (Clause, String) -> Problem
+toProblem sev (clause, var) =
   Problem
     { problemType = NoSingletonVariables,
       problemClause = clause,
-      problemDisplay = \(Just sev) ->
+      problemSeverity = sev,
+      problemDisplay =
         vsep
           [ hsep
               [ brackets $ string $ pack $ show sev,

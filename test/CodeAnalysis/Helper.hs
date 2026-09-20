@@ -11,7 +11,7 @@ shouldDetectProblemOfType cfg pt code = case consultString code of
   Left err -> assertFailure $ "Failed to parse prolog program:\n" ++ show err
   Right prog -> case checkForProblems cfg prog of
     [] -> assertFailure "No problem with provided type found"
-    pbs | any (\(_, pb) -> pt /= problemType pb) pbs -> assertFailure "Found problem does not match provided one."
+    pbs | any (\pb -> pt /= problemType pb) pbs -> assertFailure "Found problem does not match provided one."
     _ -> pure ()
 
 shouldNotDetectProblemOfType :: CodeAnalysisConfig -> ProblemType -> String -> Expectation
@@ -19,5 +19,5 @@ shouldNotDetectProblemOfType cfg pt code = case consultString code of
   Left err -> assertFailure $ "Failed to parse prolog program:\n" ++ show err
   Right prog -> case checkForProblems cfg prog of
     [] -> pure ()
-    pbs | any (\(_, pb) -> pt == problemType pb) pbs -> assertFailure "Found problem that should not exist."
+    pbs | any (\pb -> pt == problemType pb) pbs -> assertFailure "Found problem that should not exist."
     _ -> pure ()
