@@ -49,7 +49,6 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
-    , extra
     , mtl
     , parsec
     , prolog
@@ -73,7 +72,6 @@ executable test-task-prolog
     , base >=4.7 && <5
     , bytestring
     , containers
-    , extra
     , mtl
     , parsec
     , prolog
@@ -103,7 +101,6 @@ test-suite prolog-programming-task-test
     , base >=4.7 && <5
     , bytestring
     , containers
-    , extra
     , hspec
     , mtl
     , parsec

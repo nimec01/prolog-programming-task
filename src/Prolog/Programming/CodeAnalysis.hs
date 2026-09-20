@@ -6,9 +6,7 @@ module Prolog.Programming.CodeAnalysis
   )
 where
 
-import Data.List (groupBy, intersperse, uncons)
-import Data.List.Extra (groupOn)
-import Data.Maybe (mapMaybe)
+import Data.List (groupBy, intersperse)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause, Program, consultString)
 import Prolog.Programming.CodeAnalysis.Config (configuredRules, defaultCodeAnalysisConfig)
@@ -25,9 +23,8 @@ testCheck code = case consultString code of
 
 checkForProblems :: CodeAnalysisConfig -> Program -> [Problem]
 checkForProblems cfg clauses =
-  filterFirstProblemPerClause $
-    checkForProblems' cfg $
-      groupBy definesSamePredicate clauses
+  checkForProblems' cfg $
+    groupBy definesSamePredicate clauses
 
 checkForProblems' :: CodeAnalysisConfig -> [[Clause]] -> [Problem]
 checkForProblems' cfg = concatMap (checkPredicateDefinitionsForProblem cfg)
@@ -35,14 +32,9 @@ checkForProblems' cfg = concatMap (checkPredicateDefinitionsForProblem cfg)
 checkPredicateDefinitionsForProblem :: CodeAnalysisConfig -> [Clause] -> [Problem]
 checkPredicateDefinitionsForProblem cfg clauses =
   foldl
-    (\acc configuredRule -> if null acc then ruleDetect (rule configuredRule) (severity configuredRule) clauses else acc)
+    (\acc configuredRule -> ruleDetect (rule configuredRule) (severity configuredRule) clauses ++ acc)
     []
     $ configuredRules cfg
-
-filterFirstProblemPerClause :: [Problem] -> [Problem]
-filterFirstProblemPerClause pbs = mapMaybe (fmap fst . uncons) groupedByClause
-  where
-    groupedByClause = groupOn problemClause pbs
 
 displayProblems :: [Problem] -> Either Doc Doc
 displayProblems pbs = cons $ vsep $ intersperse (text $ pack $ replicate 15 '-') $ map problemDisplay pbs
