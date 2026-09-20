@@ -1,8 +1,9 @@
 module Prolog.Programming.TestSpec where
 
-import Control.Applicative ((<|>))
-import Data.Void (Void)
+import Data.Void ( Void )
+
 import Language.Prolog (Term (..))
+import Control.Applicative ((<|>))
 import Prolog.Programming.CodeAnalysis.Types (Severity)
 
 type TimeoutDuration = Int
@@ -10,13 +11,10 @@ type TimeoutDuration = Int
 data TreeStyle = QueryStyle | ResolutionStyle
 
 type IncludeTask = Include ()
-
 type IncludeHidden = Include Void
-
 data Include a = Yes | Filtered | No a
 
 type AllowListMatching = Bool
-
 type ShowSWISHButton = Bool
 
 data SpecLine
@@ -30,16 +28,16 @@ data SpecLine
   | RestrictCutUsageSpec Bool
   | TestSpec Spec
 
-data TaskConfig m = TaskConfig
-  { mTimeout :: m TimeoutDuration,
-    mStyle :: m TreeStyle,
-    mIncTask :: m IncludeTask,
-    mIncHidden :: m IncludeHidden,
-    mListMatch :: m AllowListMatching,
-    mSWISHButton :: m ShowSWISHButton,
-    mNoSingletonVariables :: m Severity,
-    mRestrictCutUsage :: m Bool,
-    specifications :: [Spec]
+data TaskConfig m = TaskConfig 
+  { mTimeout :: m TimeoutDuration
+  , mStyle :: m TreeStyle
+  , mIncTask :: m IncludeTask
+  , mIncHidden :: m IncludeHidden
+  , mListMatch :: m AllowListMatching
+  , mSWISHButton :: m ShowSWISHButton
+  , mNoSingletonVariables :: m Severity
+  , mRestrictCutUsage :: m Bool
+  , specifications :: [Spec]
   }
 
 partitionSpecLine :: [SpecLine] -> TaskConfig Maybe
@@ -58,42 +56,42 @@ partitionSpecLine =
         []
     )
   where
-    combine (TimeoutSpec s) spec = spec {mTimeout = mTimeout spec <|> Just s}
-    combine (TreeStyleSpec s) spec = spec {mStyle = mStyle spec <|> Just s}
-    combine (IncludeTaskSpec s) spec = spec {mIncTask = mIncTask spec <|> Just s}
-    combine (IncludeHiddenSpec s) spec = spec {mIncHidden = mIncHidden spec <|> Just s}
-    combine (ListMatchSpec s) spec = spec {mListMatch = mListMatch spec <|> Just s}
-    combine (ShowsSWISHButtonSpec s) spec = spec {mSWISHButton = mSWISHButton spec <|> Just s}
+    combine (TimeoutSpec s) spec = spec { mTimeout = mTimeout spec <|> Just s }
+    combine (TreeStyleSpec s) spec = spec { mStyle = mStyle spec <|> Just s }
+    combine (IncludeTaskSpec s) spec = spec { mIncTask = mIncTask spec <|> Just s }
+    combine (IncludeHiddenSpec s) spec = spec { mIncHidden = mIncHidden spec <|> Just s }
+    combine (ListMatchSpec s) spec = spec { mListMatch = mListMatch spec <|> Just s }
+    combine (ShowsSWISHButtonSpec s) spec = spec { mSWISHButton = mSWISHButton spec <|> Just s }
     combine (NoSingletonVariablesSpec s) spec = spec {mNoSingletonVariables = mNoSingletonVariables spec <|> Just s}
     combine (RestrictCutUsageSpec s) spec = spec {mRestrictCutUsage = mRestrictCutUsage spec <|> Just s}
-    combine (TestSpec s) spec = spec {specifications = specifications spec ++ [s]}
+    combine (TestSpec s) spec = spec { specifications = specifications spec ++ [s] }
 
 data Spec = Spec Visibility Visualize Expection Timeout Requirement
-  deriving (Show)
+  deriving Show
 
 data Visibility = Hidden String | Visible
-  deriving (Show)
+  deriving Show
 
 data Visualize = ShowTree | DontShowTree
-  deriving (Show)
+  deriving Show
 
 data Expection = PositiveResult | NegativeResult
-  deriving (Show)
+  deriving Show
 
 data Timeout = GlobalTimeout | LocalTimeout Int
-  deriving (Show)
+  deriving Show
 
 data Requirement
   = StatementToCheck [Term]
   | QueryWithAnswers [Term] [[Term]]
   | NewPredDecl Term String
-  deriving (Show)
+  deriving Show
 
 defaultOptions :: Requirement -> Spec
 defaultOptions = Spec Visible DontShowTree PositiveResult GlobalTimeout
 
 queryWithAnswers :: [Term] -> [[Term]] -> Spec
-queryWithAnswers q as = defaultOptions $ QueryWithAnswers q as
+queryWithAnswers q as =  defaultOptions $ QueryWithAnswers q as
 
 statementToCheck :: [Term] -> Spec
 statementToCheck ts = defaultOptions $ StatementToCheck ts

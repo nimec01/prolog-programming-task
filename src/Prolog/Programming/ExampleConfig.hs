@@ -1,14 +1,13 @@
 {-# LANGUAGE QuasiQuotes #-}
-
 module Prolog.Programming.ExampleConfig where
 
-import Prolog.Programming.Data (Config (..))
+import Prolog.Programming.Data (Config(..))
+
 import qualified Text.RawString.QQ as RS (r)
 
 exampleConfig :: Config
-exampleConfig =
-  Config
-    [RS.r|/* % comments for test cases have to start with an extra %
+exampleConfig = Config
+  [RS.r|/* % comments for test cases have to start with an extra %
  * % timeout per test in ms (defaults to 10000, only the first timeout is used)
  * Global timeout: 10000
  * % style of derivation tree rendering can be either 'query' or 'resolution' (defaults to 'query')
