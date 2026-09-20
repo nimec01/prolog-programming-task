@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
-
 module Prolog.Programming.CodeAnalysis.Types
   ( ProblemType (..),
     Problem (..),
