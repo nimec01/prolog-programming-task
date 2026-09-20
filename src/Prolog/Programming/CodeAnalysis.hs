@@ -10,13 +10,13 @@ module Prolog.Programming.CodeAnalysis
 where
 
 import Data.List (groupBy, intersperse, uncons)
-import Data.Maybe (mapMaybe)
+import Data.Maybe (isNothing, mapMaybe)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause, Program, consultString)
 import Prolog.Programming.CodeAnalysis.Config (configuredRules, defaultCodeAnalysisConfig)
 import Prolog.Programming.CodeAnalysis.Helper (definesSamePredicate)
-import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), ConfiguredRule (..), Problem (..), Rule (..), Severity)
-import Text.PrettyPrint.Leijen.Text (Doc, brackets, indent, linebreak, text, vsep, (<+>))
+import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), ConfiguredRule (..), Problem (..), Rule (..), Severity (Error))
+import Text.PrettyPrint.Leijen.Text (Doc, text, vsep)
 
 testCheck :: String -> IO [(Maybe Severity, Problem)]
 testCheck code = case consultString code of
@@ -46,15 +46,11 @@ filterFirstProblemPerClause pbs = mapMaybe (fmap fst . uncons) groupedByClause
   where
     groupedByClause = groupBy (\(_, a) (_, b) -> problemClause a == problemClause b) pbs
 
-displayProblems :: [(Severity, Problem)] -> Doc
-displayProblems pbs = vsep $ intersperse (text "-----") $ map displayProblem pbs
+displayProblems :: [(Maybe Severity, Problem)] -> Either Doc Doc
+displayProblems pbs = cons $ vsep $ intersperse (text $ pack $ replicate 15 '-') $ map displayProblem pbs
+  where
+    cons = if any (\(ms, _) -> ms == Just Error || isNothing ms) pbs then Left else Right
 
-displayProblem :: (Severity, Problem) -> Doc
-displayProblem (sev, Problem {..}) =
-  vsep $
-    [ brackets (text $ pack $ show sev) <+> text (pack $ "Found " ++ show problemType ++ " in clause:"),
-      indent 2 $ text $ pack $ show problemClause
-    ]
-      ++ case problemHint of
-        Nothing -> []
-        Just msg -> [linebreak <> text (pack $ "Suggestion: " ++ msg)]
+displayProblem :: (Maybe Severity, Problem) -> Doc
+displayProblem (mSev, Problem {..}) =
+  problemDisplay mSev

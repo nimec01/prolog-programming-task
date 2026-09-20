@@ -37,7 +37,7 @@ import Language.Prolog
   )
 import Language.Prolog.GraphViz (Graph, asInlineSvgWith)
 import Language.Prolog.GraphViz.Formatting (GraphFormatting, queryStyle, resolutionStyle)
-import Prolog.Programming.CodeAnalysis (checkForProblems)
+import Prolog.Programming.CodeAnalysis (checkForProblems, displayProblems)
 import Prolog.Programming.Data
 import Prolog.Programming.ExampleConfig
 import Prolog.Programming.Helper (Arity, termHead)
@@ -56,7 +56,7 @@ import Text.PrettyPrint.Leijen.Text
     text,
     vcat,
     (<$$>),
-    (<+>),
+    (<+>), vsep,
   )
 
 verifyConfig :: (MonadFail m) => Config -> m ()
@@ -206,9 +206,13 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
                         else ""
                 )
 
+      let problemDisplay display pbd = display $ vsep
+            [ text . pack $ replicate 15 '-'
+            , pbd
+            ]
       case checkForProblems caConfig inProg of
         [] -> pure ()
-        _ -> reject "Update"
+        pbs -> either (problemDisplay reject) (problemDisplay inform) $ displayProblems pbs
 
 consultStringsAndFilter :: String -> (Clause -> Bool) -> String -> (Clause -> Bool) -> Either ParseError [Clause]
 consultStringsAndFilter visibleDefs keepVisible hiddenDefs keepHidden = do

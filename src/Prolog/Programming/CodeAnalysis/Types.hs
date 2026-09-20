@@ -3,6 +3,7 @@
 module Prolog.Programming.CodeAnalysis.Types where
 
 import Language.Prolog (Clause (..))
+import Text.PrettyPrint.Leijen.Text (Doc)
 
 instance Eq Clause where
   Clause ls1 rs1 == Clause ls2 rs2 = ls1 == ls2 && rs1 == rs2
@@ -16,9 +17,8 @@ data ProblemType
 data Problem = Problem
   { problemType :: ProblemType,
     problemClause :: Clause,
-    problemHint :: Maybe String
+    problemDisplay :: Maybe Severity -> Doc
   }
-  deriving (Show, Eq)
 
 data Rule = Rule
   { ruleDetect :: [Clause] -> [Problem],

@@ -1,12 +1,16 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 module Prolog.Programming.CodeAnalysis.Rules.NoSingletonVariables (noSingletonVariablesRule) where
 
 import Data.List (uncons, (\\))
 import Data.Maybe (mapMaybe)
+import Data.Text.Lazy (pack)
 import Language.Prolog (Clause (..), Term (..))
 import Prolog.Programming.CodeAnalysis.Helper (namedVariablesInTerm)
 import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (NoSingletonVariables), Rule (..))
+import Text.PrettyPrint.Leijen.Text (brackets, hsep, indent, linebreak, string, vsep)
 
 noSingletonVariablesRule :: Rule
 noSingletonVariablesRule =
@@ -39,5 +43,14 @@ toProblem (clause, var) =
   Problem
     { problemType = NoSingletonVariables,
       problemClause = clause,
-      problemHint = Just $ "Replace " ++ var ++ " with wildcard (_) ."
+      problemDisplay = \(Just sev) ->
+        vsep
+          [ hsep
+              [ brackets $ string $ pack $ show sev,
+                string "Your clause"
+              ],
+            indent 2 $ string $ pack $ show clause,
+            string (pack $ "includes the singleton variable " ++ var ++ ".") <> linebreak,
+            string "You can safely replace it with a wildcard (_)."
+          ]
     }
