@@ -14,10 +14,10 @@ restrictCutUsageRule =
     { ruleDetect = detect
     }
 
-detect :: [Clause] -> [Problem]
-detect clauses = map toProblem clausesWithCuts
-  where
-    clausesWithCuts = filter cutExistsInClause clauses
+detect :: Clause -> [Problem]
+detect clause
+  | cutExistsInClause clause = [toProblem clause]
+  | otherwise = []
 
 cutExistsInClause :: Clause -> Bool
 cutExistsInClause (Clause _ rhs) = any termContainsCut rhs

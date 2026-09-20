@@ -3,7 +3,6 @@
 
 module Prolog.Programming.CodeAnalysis.Rules.NoSingletonVariables (noSingletonVariablesRule) where
 
-import Data.Bifunctor (second)
 import Data.Generics (Data, everything, mkQ)
 import Data.Map (Map)
 import qualified Data.Map as Map (empty, filter, keys, singleton, unionWith)
@@ -18,11 +17,10 @@ noSingletonVariablesRule =
     { ruleDetect = detect
     }
 
-detect :: [Clause] -> [Problem]
-detect predicateDefs = [toProblem (c, v) | (c, vs) <- clauseSingletons, v <- vs]
+detect :: Clause -> [Problem]
+detect clause = map (toProblem clause) singletonVariables
   where
-    clauseVariables = map (\c -> (c, countVariables c)) predicateDefs
-    clauseSingletons = map (second (Map.keys . Map.filter (== 1))) clauseVariables
+    singletonVariables = Map.keys . Map.filter (== 1) $ countVariables clause
 
 countVariables :: (Data a) => a -> Map String Int
 countVariables = everything (Map.unionWith (+)) $ mkQ Map.empty count
@@ -31,8 +29,8 @@ countVariables = everything (Map.unionWith (+)) $ mkQ Map.empty count
     count (Var (VariableName _ name)) = Map.singleton name 1
     count _ = Map.empty
 
-toProblem :: (Clause, String) -> Problem
-toProblem (clause, var) =
+toProblem :: Clause -> String -> Problem
+toProblem clause var =
   Problem
     { problemType = NoSingletonVariables,
       problemClause = clause,

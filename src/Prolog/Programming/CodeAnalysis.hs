@@ -7,11 +7,9 @@ module Prolog.Programming.CodeAnalysis
   )
 where
 
-import Data.List (groupBy)
 import Data.Text.Lazy (pack)
-import Language.Prolog (Clause, Program, consultString)
+import Language.Prolog (Program, consultString)
 import Prolog.Programming.CodeAnalysis.Config (configuredRules, defaultCodeAnalysisConfig)
-import Prolog.Programming.CodeAnalysis.Helper (definesSamePredicate)
 import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), ConfiguredRule (..), Problem (..), Rule (..), Severity (Error))
 import Text.PrettyPrint.Leijen.Text (Doc, brackets, string, vsep, (<$$>))
 
@@ -23,19 +21,7 @@ testCheck code = case consultString code of
   Right prog -> pure $ checkForProblems defaultCodeAnalysisConfig prog
 
 checkForProblems :: CodeAnalysisConfig -> Program -> [(Problem, Severity)]
-checkForProblems cfg clauses =
-  checkForProblems' cfg $
-    groupBy definesSamePredicate clauses
-
-checkForProblems' :: CodeAnalysisConfig -> [[Clause]] -> [(Problem, Severity)]
-checkForProblems' cfg = concatMap (checkPredicateDefinitionsForProblem cfg)
-
-checkPredicateDefinitionsForProblem :: CodeAnalysisConfig -> [Clause] -> [(Problem, Severity)]
-checkPredicateDefinitionsForProblem cfg clauses =
-  foldl
-    (\acc configuredRule -> ((,severity configuredRule) <$> ruleDetect (rule configuredRule) clauses) ++ acc)
-    []
-    $ configuredRules cfg
+checkForProblems cfg = concatMap (\c -> concatMap (\cr -> (,severity cr) <$> ruleDetect (rule cr) c) $ configuredRules cfg)
 
 displayProblems :: [(Problem, Severity)] -> Either Doc Doc
 displayProblems pbs =

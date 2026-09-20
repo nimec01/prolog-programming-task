@@ -26,7 +26,7 @@ data Problem = Problem
   deriving (Show)
 
 newtype Rule = Rule
-  { ruleDetect :: [Clause] -> [Problem]
+  { ruleDetect :: Clause -> [Problem]
   }
 
 data CodeAnalysisConfig = CodeAnalysisConfig
