@@ -24,3 +24,5 @@ spec = describe "NoUnusedVariables" $ do
 
   it "detect problem on example 7" $
     "p :- a(X)." `shouldDetectProblemOfType` NoUnusedVariables
+  it "doesn't detect problem on example 8" $
+    "p :- a(X), b(X)." `shouldNotDetectProblemOfType` NoUnusedVariables
