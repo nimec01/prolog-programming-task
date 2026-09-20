@@ -1,11 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 module Prolog.Programming.CodeAnalysis.Rules.NoSingletonVariables (noSingletonVariablesRule) where
 
-import Data.List (uncons, (\\))
-import Data.Maybe (mapMaybe)
+import Data.List ((\\))
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause (..), Term (..))
 import Prolog.Programming.CodeAnalysis.Helper (namedVariablesInTerm)
@@ -19,17 +17,17 @@ noSingletonVariablesRule =
     }
 
 detect :: Severity -> [Clause] -> [Problem]
-detect sev predicateDefs = map (toProblem sev) clausesWithSingletonVariable
+detect sev predicateDefs =
+  [ toProblem sev (c, v)
+    | (c, vs) <- clausesWithSingletonVariables,
+      v <- vs
+  ]
   where
-    clausesWithSingletonVariable = mapMaybe (\c -> (c,) <$> clauseHasSingletonVariable c) predicateDefs
+    clausesWithSingletonVariables = map (\c -> (c, collectSingletonVariablesForClause c)) predicateDefs
 
-clauseHasSingletonVariable :: Clause -> Maybe String
-clauseHasSingletonVariable (Clause (Struct _ args) rs) = case uncons args of
-  Nothing -> fst <$> uncons (collectSingletonVariables [] rs)
-  Just (x, xs) -> case namedVariablesInTerm x of
-    [] -> Nothing
-    (v : _) -> fst <$> uncons (collectSingletonVariables [v] (xs ++ rs))
-clauseHasSingletonVariable _ = Nothing
+collectSingletonVariablesForClause :: Clause -> [String]
+collectSingletonVariablesForClause (Clause (Struct _ args) rs) = collectSingletonVariables [] $ args ++ rs
+collectSingletonVariablesForClause _ = []
 
 collectSingletonVariables :: [String] -> [Term] -> [String]
 collectSingletonVariables vs [] = vs
