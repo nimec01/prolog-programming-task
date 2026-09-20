@@ -13,3 +13,6 @@ spec = describe "RestrictCutUsage" $ do
 
   it "doesn't detect problem on example 2" $
     "p(X,Y) :- q(X,Y)." `shouldNotDetectProblemOfType` RestrictCutUsage
+
+  it "detects problem on example 4" $
+    "p(X) :- a(X), (b(X), ! ; c(X))." `shouldDetectProblemOfType` RestrictCutUsage

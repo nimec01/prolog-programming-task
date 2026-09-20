@@ -21,3 +21,6 @@ spec = describe "NoUnusedVariables" $ do
     "p(X,X)." `shouldNotDetectProblemOfType` NoUnusedVariables
   it "doesn't detect problem on example 6" $
     "p(X) :- X = [Z|Zs], q(Z,Zs)." `shouldNotDetectProblemOfType` NoUnusedVariables
+
+  it "detect problem on example 7" $
+    "p :- a(X)." `shouldDetectProblemOfType` NoUnusedVariables
