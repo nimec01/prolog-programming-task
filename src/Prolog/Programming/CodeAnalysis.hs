@@ -7,6 +7,7 @@ module Prolog.Programming.CodeAnalysis
 where
 
 import Data.List (groupBy, intersperse, uncons)
+import Data.List.Extra (groupOn)
 import Data.Maybe (mapMaybe)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause, Program, consultString)
@@ -41,7 +42,7 @@ checkPredicateDefinitionsForProblem cfg clauses =
 filterFirstProblemPerClause :: [Problem] -> [Problem]
 filterFirstProblemPerClause pbs = mapMaybe (fmap fst . uncons) groupedByClause
   where
-    groupedByClause = groupBy (\a b -> problemClause a == problemClause b) pbs
+    groupedByClause = groupOn problemClause pbs
 
 displayProblems :: [Problem] -> Either Doc Doc
 displayProblems pbs = cons $ vsep $ intersperse (text $ pack $ replicate 15 '-') $ map problemDisplay pbs
