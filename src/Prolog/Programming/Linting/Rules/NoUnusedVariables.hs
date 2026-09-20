@@ -22,7 +22,7 @@ detect predicateDefs = map toProblem clausesWithUnusedVariable
 
 clauseHasUnusedVariable :: Clause -> Maybe String
 clauseHasUnusedVariable (Clause (Struct _ args) rs) = case uncons args of
-  Nothing -> Nothing
+  Nothing -> fst <$> uncons (collectUnusedVariables [] rs)
   Just (x, xs) -> case namedVariablesInTerm x of
     [] -> Nothing
     (v : _) -> fst <$> uncons (collectUnusedVariables [v] (xs ++ rs))
