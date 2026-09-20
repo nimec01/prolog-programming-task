@@ -26,3 +26,15 @@ spec = describe "NoUnusedVariables" $ do
     "p :- a(X)." `shouldDetectProblemOfType` NoUnusedVariables
   it "doesn't detect problem on example 8" $
     "p :- a(X), b(X)." `shouldNotDetectProblemOfType` NoUnusedVariables
+  it "detect problem on example 9" $
+    "p(X) :- a(X), b(Y)." `shouldDetectProblemOfType` NoUnusedVariables
+  it "doesn't detect problem on example 10" $
+    "p(X,Y) :- Z is X + Y, q(Z)." `shouldNotDetectProblemOfType` NoUnusedVariables
+  it "doesn't detect problem on example 11" $
+    "p(X,Y) :- X =:= Y." `shouldNotDetectProblemOfType` NoUnusedVariables
+  it "doesn't detect problem on example 12" $
+    "p(X,Y) :- X =\\= Y." `shouldNotDetectProblemOfType` NoUnusedVariables
+  it "doesn't detect problem on example 13" $
+    "p(X,Y) :- not(X =:= Y)." `shouldNotDetectProblemOfType` NoUnusedVariables
+  it "doesn't detect problem on example 14" $
+    "p(X,Y) :- X \\= Y." `shouldNotDetectProblemOfType` NoUnusedVariables
