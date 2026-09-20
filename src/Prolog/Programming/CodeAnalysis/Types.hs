@@ -30,7 +30,7 @@ data Problem = Problem
   }
   deriving (Show)
 
-data Rule = Rule
+newtype Rule = Rule
   { ruleDetect :: Severity -> [Clause] -> [Problem]
   }
 
