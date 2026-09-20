@@ -42,7 +42,7 @@ import Language.Prolog.GraphViz.Formatting (GraphFormatting, queryStyle, resolut
 
 import Text.Parsec (ParseError)
 import Text.PrettyPrint.Leijen.Text (
-  Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent, vsep,
+  Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
   )
 import Prolog.Programming.CodeAnalysis (checkForProblems, displayProblems)
 
@@ -176,13 +176,9 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
                    then ", tests not run: " ++ show notRun
                    else "")
 
-      let problemDisplay display pbd = display $ vsep
-            [ text . pack $ replicate 15 '-'
-            , pbd
-            ]
       case checkForProblems caConfig inProg of
         [] -> pure ()
-        pbs -> either (problemDisplay reject) (problemDisplay inform) $ displayProblems pbs
+        pbs -> either reject inform $ displayProblems pbs
 
 consultStringsAndFilter :: String -> (Clause -> Bool) -> String -> (Clause -> Bool) -> Either ParseError [Clause]
 consultStringsAndFilter visibleDefs keepVisible hiddenDefs keepHidden = do

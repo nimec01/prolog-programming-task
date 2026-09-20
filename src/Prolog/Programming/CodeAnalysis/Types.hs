@@ -21,13 +21,12 @@ data ProblemType
 data Problem = Problem
   { problemType :: ProblemType,
     problemClause :: Clause,
-    problemSeverity :: Severity,
     problemDisplay :: Doc
   }
   deriving (Show)
 
 newtype Rule = Rule
-  { ruleDetect :: Severity -> [Clause] -> [Problem]
+  { ruleDetect :: [Clause] -> [Problem]
   }
 
 data CodeAnalysisConfig = CodeAnalysisConfig

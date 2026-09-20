@@ -5,8 +5,8 @@ module Prolog.Programming.CodeAnalysis.Rules.RestrictCutUsage (restrictCutUsageR
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause (..))
 import Prolog.Programming.CodeAnalysis.Helper (termContainsCut)
-import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (RestrictCutUsage), Rule (..), Severity)
-import Text.PrettyPrint.Leijen.Text (brackets, hsep, indent, linebreak, string, vsep)
+import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (RestrictCutUsage), Rule (..))
+import Text.PrettyPrint.Leijen.Text (hsep, indent, linebreak, string, vsep)
 
 restrictCutUsageRule :: Rule
 restrictCutUsageRule =
@@ -14,8 +14,8 @@ restrictCutUsageRule =
     { ruleDetect = detect
     }
 
-detect :: Severity -> [Clause] -> [Problem]
-detect sev clauses = map (toProblem sev) clausesWithCuts
+detect :: [Clause] -> [Problem]
+detect clauses = map toProblem clausesWithCuts
   where
     clausesWithCuts = filter cutExistsInClause clauses
 
@@ -23,18 +23,14 @@ cutExistsInClause :: Clause -> Bool
 cutExistsInClause (Clause _ rhs) = any termContainsCut rhs
 cutExistsInClause _ = False
 
-toProblem :: Severity -> Clause -> Problem
-toProblem sev clause =
+toProblem :: Clause -> Problem
+toProblem clause =
   Problem
     { problemType = RestrictCutUsage,
       problemClause = clause,
-      problemSeverity = sev,
       problemDisplay =
         vsep
-          [ hsep
-              [ brackets $ string $ pack $ show sev,
-                string "Your clause"
-              ],
+          [ string "Your clause",
             indent 2 $ string $ pack $ show clause,
             string "makes use of the cut (!) operator." <> linebreak,
             hsep

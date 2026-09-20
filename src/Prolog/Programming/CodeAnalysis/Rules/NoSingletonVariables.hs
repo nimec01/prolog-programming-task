@@ -9,8 +9,8 @@ import Data.Map (Map)
 import qualified Data.Map as Map (empty, filter, keys, singleton, unionWith)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause (..), Term (..), VariableName (..))
-import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (NoSingletonVariables), Rule (..), Severity)
-import Text.PrettyPrint.Leijen.Text (brackets, hsep, indent, linebreak, string, vsep)
+import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (NoSingletonVariables), Rule (..))
+import Text.PrettyPrint.Leijen.Text (indent, linebreak, string, vsep)
 
 noSingletonVariablesRule :: Rule
 noSingletonVariablesRule =
@@ -18,8 +18,8 @@ noSingletonVariablesRule =
     { ruleDetect = detect
     }
 
-detect :: Severity -> [Clause] -> [Problem]
-detect sev predicateDefs = [toProblem sev (c, v) | (c, vs) <- clauseSingletons, v <- vs]
+detect :: [Clause] -> [Problem]
+detect predicateDefs = [toProblem (c, v) | (c, vs) <- clauseSingletons, v <- vs]
   where
     clauseVariables = map (\c -> (c, countVariables c)) predicateDefs
     clauseSingletons = map (second (Map.keys . Map.filter (== 1))) clauseVariables
@@ -31,18 +31,14 @@ countVariables = everything (Map.unionWith (+)) $ mkQ Map.empty count
     count (Var (VariableName _ name)) = Map.singleton name 1
     count _ = Map.empty
 
-toProblem :: Severity -> (Clause, String) -> Problem
-toProblem sev (clause, var) =
+toProblem :: (Clause, String) -> Problem
+toProblem (clause, var) =
   Problem
     { problemType = NoSingletonVariables,
       problemClause = clause,
-      problemSeverity = sev,
       problemDisplay =
         vsep
-          [ hsep
-              [ brackets $ string $ pack $ show sev,
-                string "Your clause"
-              ],
+          [ string "Your clause",
             indent 2 $ string $ pack $ show clause,
             string (pack $ "includes the singleton variable " ++ var ++ ".") <> linebreak,
             string "You can safely replace it with a wildcard (_)."
