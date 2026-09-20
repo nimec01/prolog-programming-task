@@ -28,6 +28,7 @@ dependencies:
 - raw-strings-qq
 - text
 - wl-pprint-text
+- syb >= 0.3
 
 library:
   source-dirs: src

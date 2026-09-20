@@ -3,10 +3,12 @@
 
 module Prolog.Programming.CodeAnalysis.Rules.NoSingletonVariables (noSingletonVariablesRule) where
 
-import Data.List ((\\))
+import Data.Bifunctor (second)
+import Data.Generics (Data, everything, mkQ)
+import Data.Map (Map)
+import qualified Data.Map as Map (empty, filter, keys, singleton, unionWith)
 import Data.Text.Lazy (pack)
-import Language.Prolog (Clause (..), Term (..))
-import Prolog.Programming.CodeAnalysis.Helper (namedVariablesInTerm)
+import Language.Prolog (Clause (..), Term (..), VariableName (..))
 import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (NoSingletonVariables), Rule (..), Severity)
 import Text.PrettyPrint.Leijen.Text (brackets, hsep, indent, linebreak, string, vsep)
 
@@ -17,23 +19,17 @@ noSingletonVariablesRule =
     }
 
 detect :: Severity -> [Clause] -> [Problem]
-detect sev predicateDefs =
-  [ toProblem sev (c, v)
-    | (c, vs) <- clausesWithSingletonVariables,
-      v <- vs
-  ]
+detect sev predicateDefs = [toProblem sev (c, v) | (c, vs) <- clauseSingletons, v <- vs]
   where
-    clausesWithSingletonVariables = map (\c -> (c, collectSingletonVariablesForClause c)) predicateDefs
+    clauseVariables = map (\c -> (c, countVariables c)) predicateDefs
+    clauseSingletons = map (second (Map.keys . Map.filter (== 1))) clauseVariables
 
-collectSingletonVariablesForClause :: Clause -> [String]
-collectSingletonVariablesForClause (Clause (Struct _ args) rs) = collectSingletonVariables [] $ args ++ rs
-collectSingletonVariablesForClause _ = []
-
-collectSingletonVariables :: [String] -> [Term] -> [String]
-collectSingletonVariables vs [] = vs
-collectSingletonVariables vs (t : ts) = collectSingletonVariables ((vs \\ varsInT) ++ (varsInT \\ vs)) ts
+countVariables :: (Data a) => a -> Map String Int
+countVariables = everything (Map.unionWith (+)) $ mkQ Map.empty count
   where
-    varsInT = namedVariablesInTerm t
+    count :: Term -> Map String Int
+    count (Var (VariableName _ name)) = Map.singleton name 1
+    count _ = Map.empty
 
 toProblem :: Severity -> (Clause, String) -> Problem
 toProblem sev (clause, var) =
