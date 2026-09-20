@@ -3,7 +3,7 @@ module Prolog.Programming.CodeAnalysis.Helper where
 import Language.Prolog (Clause (..), Term (..), VariableName (..))
 
 definesSamePredicate :: Clause -> Clause -> Bool
-definesSamePredicate (Clause (Struct a1 _) _) (Clause (Struct a2 _) _) = a1 == a2
+definesSamePredicate (Clause (Struct a1 args1) _) (Clause (Struct a2 args2) _) = a1 == a2 && length args1 == length args2
 definesSamePredicate _ _ = False
 
 termContainsCut :: Term -> Bool
