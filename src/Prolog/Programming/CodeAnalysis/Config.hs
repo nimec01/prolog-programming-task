@@ -10,13 +10,13 @@ where
 import Control.Applicative ((<|>))
 import Data.List (find)
 import Data.Maybe (mapMaybe)
-import Prolog.Programming.CodeAnalysis.Rules.NoUnusedVariables (noUnusedVariablesRule)
+import Prolog.Programming.CodeAnalysis.Rules.NoSingletonVariables (noSingletonVariablesRule)
 import Prolog.Programming.CodeAnalysis.Rules.RestrictCutUsage (restrictCutUsageRule)
-import Prolog.Programming.CodeAnalysis.Types (ConfiguredRule (..), LintConfig (..), ProblemType (NoUnusedVariables, RestrictCutUsage), Rule (..), Severity (..))
+import Prolog.Programming.CodeAnalysis.Types (ConfiguredRule (..), LintConfig (..), ProblemType (NoSingletonVariables, RestrictCutUsage), Rule (..), Severity (..))
 
 availableRules :: [Rule]
 availableRules =
-  [ noUnusedVariablesRule,
+  [ noSingletonVariablesRule,
     restrictCutUsageRule
   ]
 
@@ -35,6 +35,6 @@ defaultLintConfig :: LintConfig
 defaultLintConfig =
   LintConfig
     { hintProblems = [],
-      warnProblems = [NoUnusedVariables],
+      warnProblems = [NoSingletonVariables],
       errorProblems = [RestrictCutUsage]
     }

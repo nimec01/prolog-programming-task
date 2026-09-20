@@ -10,7 +10,7 @@ exampleConfig =
   Config
     [RS.r|/* Tree style: query
  * Include task definitions: filtered
- * CodeAnalysis rules: error:RestrictCutUsage , warn:NoUnusedVariables
+ * CodeAnalysis rules: error:RestrictCutUsage , warn:NoSingletonVariables
  */
 /* As in the lecture, we deal with "Peano numbers" now, i.e., natural numbers
  * represented with constant symbol null/0 and successor function symbol s/1.

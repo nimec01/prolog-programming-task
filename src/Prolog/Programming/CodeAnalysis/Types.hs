@@ -9,7 +9,7 @@ instance Eq Clause where
   _ == _ = False
 
 data ProblemType
-  = NoUnusedVariables
+  = NoSingletonVariables
   | RestrictCutUsage
   deriving (Show, Read, Eq)
 
