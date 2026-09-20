@@ -2,39 +2,54 @@ module CodeAnalysis.Rules.NoSingletonVariablesSpec where
 
 import CodeAnalysis.Helper (shouldDetectProblemOfType, shouldNotDetectProblemOfType)
 import Prolog.Programming.CodeAnalysis.Types
-  ( ProblemType (NoSingletonVariables),
+  ( CodeAnalysisConfig (..),
+    ProblemType (NoSingletonVariables),
+    Severity (Warn),
   )
-import Test.Hspec (Spec, describe, it)
+import Test.Hspec (Expectation, Spec, describe, it)
+
+caConfig :: CodeAnalysisConfig
+caConfig =
+  CodeAnalysisConfig
+    { noSingletonVariables = Just Warn,
+      restrictCutUsage = False
+    }
+
+detectsProblem :: String -> Expectation
+detectsProblem = shouldDetectProblemOfType caConfig NoSingletonVariables
+
+doesNotDetectProblem :: String -> Expectation
+doesNotDetectProblem = shouldNotDetectProblemOfType caConfig NoSingletonVariables
 
 spec :: Spec
 spec = describe "NoSingletonVariables" $ do
   it "detects problem on example 1" $
-    "p(X,Y) :- q(X)." `shouldDetectProblemOfType` NoSingletonVariables
+    detectsProblem "p(X,Y) :- q(X)."
   it "detects problem on example 2" $
-    "p(X) :- X = [Z|Zs], q(Z)." `shouldDetectProblemOfType` NoSingletonVariables
+    detectsProblem "p(X) :- X = [Z|Zs], q(Z)."
   it "detects problem on example 3" $
-    "p(X) :- X = [Z|Zs], q(Zs)." `shouldDetectProblemOfType` NoSingletonVariables
+    detectsProblem "p(X) :- X = [Z|Zs], q(Zs)."
 
   it "doesn't detect problem on example 4" $
-    "p(X) :- q(X)." `shouldNotDetectProblemOfType` NoSingletonVariables
+    doesNotDetectProblem "p(X) :- q(X)."
   it "doesn't detect problem on example 5" $
-    "p(X,X)." `shouldNotDetectProblemOfType` NoSingletonVariables
+    doesNotDetectProblem "p(X,X)."
   it "doesn't detect problem on example 6" $
-    "p(X) :- X = [Z|Zs], q(Z,Zs)." `shouldNotDetectProblemOfType` NoSingletonVariables
+    doesNotDetectProblem "p(X) :- X = [Z|Zs], q(Z,Zs)."
 
   it "detect problem on example 7" $
-    "p :- a(X)." `shouldDetectProblemOfType` NoSingletonVariables
+    detectsProblem "p :- a(X)."
   it "doesn't detect problem on example 8" $
-    "p :- a(X), b(X)." `shouldNotDetectProblemOfType` NoSingletonVariables
+    doesNotDetectProblem "p :- a(X), b(X)."
   it "detect problem on example 9" $
-    "p(X) :- a(X), b(Y)." `shouldDetectProblemOfType` NoSingletonVariables
+    detectsProblem "p(X) :- a(X), b(Y)."
   it "doesn't detect problem on example 10" $
-    "p(X,Y) :- Z is X + Y, q(Z)." `shouldNotDetectProblemOfType` NoSingletonVariables
+    doesNotDetectProblem "p(X,Y) :- Z is X + Y, q(Z)."
   it "doesn't detect problem on example 11" $
-    "p(X,Y) :- X =:= Y." `shouldNotDetectProblemOfType` NoSingletonVariables
+    doesNotDetectProblem "p(X,Y) :- X =:= Y."
   it "doesn't detect problem on example 12" $
-    "p(X,Y) :- X =\\= Y." `shouldNotDetectProblemOfType` NoSingletonVariables
+    doesNotDetectProblem "p(X,Y) :- X =\\= Y."
   it "doesn't detect problem on example 13" $
-    "p(X,Y) :- not(X =:= Y)." `shouldNotDetectProblemOfType` NoSingletonVariables
+    doesNotDetectProblem "p(X,Y) :- not(X =:= Y)."
   it "doesn't detect problem on example 14" $
-    "p(X,Y) :- X \\= Y." `shouldNotDetectProblemOfType` NoSingletonVariables
+    doesNotDetectProblem "p(X,Y) :- X \\= Y."

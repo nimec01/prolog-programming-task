@@ -37,8 +37,7 @@ import Language.Prolog
   )
 import Language.Prolog.GraphViz (Graph, asInlineSvgWith)
 import Language.Prolog.GraphViz.Formatting (GraphFormatting, queryStyle, resolutionStyle)
-import Prolog.Programming.CodeAnalysis (checkForProblems, displayProblems)
-import Prolog.Programming.CodeAnalysis.Types (LintConfig (..), Severity (..))
+import Prolog.Programming.CodeAnalysis (checkForProblems)
 import Prolog.Programming.Data
 import Prolog.Programming.ExampleConfig
 import Prolog.Programming.Helper (Arity, termHead)
@@ -52,7 +51,6 @@ import Text.PrettyPrint.Leijen.Text
     empty,
     indent,
     line,
-    linebreak,
     nest,
     parens,
     text,
@@ -134,7 +132,7 @@ checkTask ::
   Code ->
   m ()
 checkTask reject inform drawPicture (Config cfg) (Code input) = do
-  let (globalTO, treeStyle, includeTask, includeHidden, allowListMatching, _, dtRules, specs, (visible_facts, hidden_facts)) =
+  let (globalTO, treeStyle, includeTask, includeHidden, allowListMatching, _, caConfig, specs, (visible_facts, hidden_facts)) =
         parseConfig cfg `orError` "config should have been validated earlier"
       drawTree tree = do
         svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
@@ -208,21 +206,9 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
                         else ""
                 )
 
-      let problemsForType ty = map snd $ filter ((== ty) . fst) dtRules
-          dtConfig =
-            LintConfig
-              { hintProblems = problemsForType Hint,
-                warnProblems = problemsForType Warn,
-                errorProblems = problemsForType Error
-              }
-      case checkForProblems dtConfig inProg of
+      case checkForProblems caConfig inProg of
         [] -> pure ()
-        pbs ->
-          (if any (\(s, _) -> s == Error) pbs then reject else inform) $
-            vcat
-              [ text "Your code might be improved by following some of these suggestions:" <> linebreak,
-                displayProblems pbs
-              ]
+        _ -> reject "Update"
 
 consultStringsAndFilter :: String -> (Clause -> Bool) -> String -> (Clause -> Bool) -> Either ParseError [Clause]
 consultStringsAndFilter visibleDefs keepVisible hiddenDefs keepHidden = do

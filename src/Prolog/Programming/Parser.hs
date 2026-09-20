@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TupleSections #-}
+
 
 module Prolog.Programming.Parser
   ( parseConfig,
@@ -11,11 +11,10 @@ import Control.Monad (forM, void)
 import Data.List (isPrefixOf)
 import Data.Maybe (catMaybes, fromMaybe)
 import Language.Prolog (term, terms)
-import Prolog.Programming.CodeAnalysis.Types (ProblemType, Severity)
+import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..))
 import qualified Prolog.Programming.CodeAnalysis.Types as LT (Severity (..))
 import Prolog.Programming.TestSpec
 import Text.Parsec
-import Text.Read (readMaybe)
 
 parseConfig ::
   String ->
@@ -27,7 +26,7 @@ parseConfig ::
       IncludeHidden,
       AllowListMatching,
       ShowSWISHButton,
-      [(Severity, ProblemType)],
+      CodeAnalysisConfig,
       [Spec],
       (String, String)
     )
@@ -43,7 +42,7 @@ configuration ::
       IncludeHidden,
       AllowListMatching,
       ShowSWISHButton,
-      [(Severity, ProblemType)],
+      CodeAnalysisConfig,
       [Spec],
       (String, String)
     )
@@ -59,7 +58,7 @@ specification ::
       IncludeHidden,
       AllowListMatching,
       ShowSWISHButton,
-      [(Severity, ProblemType)],
+      CodeAnalysisConfig,
       [Spec]
     )
 specification = do
@@ -77,7 +76,10 @@ specification = do
       fromMaybe Yes mIncHidden,
       fromMaybe True mListMatch,
       fromMaybe False mSWISHButton,
-      fromMaybe [] mLintConfig,
+      CodeAnalysisConfig
+        { noSingletonVariables = mNoSingletonVariables
+        , restrictCutUsage = fromMaybe False mRestrictCutUsage
+        },
       specifications
     )
   where
@@ -92,7 +94,8 @@ specification = do
                               <|> IncludeTaskSpec <$> try includeTask
                               <|> ListMatchSpec <$> try allowListMatching
                               <|> ShowsSWISHButtonSpec <$> try showSWISHButton
-                              <|> LintConfigSpec <$> try lintConfig
+                              <|> NoSingletonVariablesSpec <$> try noSingletonVariablesP
+                              <|> RestrictCutUsageSpec <$> try restrictCutUsageP
                               <|> TestSpec <$> (try newPredDeclParser <|> specLine)
                           )
                   )
@@ -158,28 +161,20 @@ specification = do
       spaces
       True <$ string "yes" <|> False <$ string "no"
 
-    lintConfig = do
-      void $ string "CodeAnalysis rules:"
+    noSingletonVariablesP = do
+      void $ string "Detect Singleton Variables:"
       spaces
-      rules <- lintRule `sepBy` char ','
-      pure $ catMaybes rules
+      problemSeverity
 
-    lintRule = do
+    restrictCutUsageP = do
+      void $ string "Restrict Cut Usage:"
       spaces
-      sev <- lintSeverity
-      void $ char ':'
-      rule <- lintRuleName
-      spaces
-      pure $ (sev,) <$> rule
+      True <$ string "yes" <|> False <$ string "no"
 
-    lintSeverity =
+    problemSeverity =
       LT.Hint <$ string "hint"
         <|> LT.Warn <$ string "warn"
         <|> LT.Error <$ string "error"
-
-    lintRuleName = do
-      ruleName <- many1 alphaNum
-      pure $ readMaybe ruleName
 
     localTimeoutAnn =
       option id $

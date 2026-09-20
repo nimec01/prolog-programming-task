@@ -11,7 +11,7 @@ instance Eq Clause where
 data ProblemType
   = NoSingletonVariables
   | RestrictCutUsage
-  deriving (Show, Read, Eq)
+  deriving (Show, Eq)
 
 data Problem = Problem
   { problemType :: ProblemType,
@@ -25,10 +25,9 @@ data Rule = Rule
     ruleProblemType :: ProblemType
   }
 
-data LintConfig = LintConfig
-  { hintProblems :: [ProblemType],
-    warnProblems :: [ProblemType],
-    errorProblems :: [ProblemType]
+data CodeAnalysisConfig = CodeAnalysisConfig
+  { noSingletonVariables :: Maybe Severity,
+    restrictCutUsage :: Bool
   }
 
 data Severity = Hint | Warn | Error
@@ -36,5 +35,5 @@ data Severity = Hint | Warn | Error
 
 data ConfiguredRule = ConfiguredRule
   { rule :: Rule,
-    severity :: Severity
+    severity :: Maybe Severity
   }

@@ -3,7 +3,7 @@ module Prolog.Programming.TestSpec where
 import Control.Applicative ((<|>))
 import Data.Void (Void)
 import Language.Prolog (Term (..))
-import Prolog.Programming.CodeAnalysis.Types (ProblemType, Severity)
+import Prolog.Programming.CodeAnalysis.Types (Severity)
 
 type TimeoutDuration = Int
 
@@ -26,7 +26,8 @@ data SpecLine
   | IncludeHiddenSpec IncludeHidden
   | ListMatchSpec AllowListMatching
   | ShowsSWISHButtonSpec ShowSWISHButton
-  | LintConfigSpec [(Severity, ProblemType)]
+  | NoSingletonVariablesSpec Severity
+  | RestrictCutUsageSpec Bool
   | TestSpec Spec
 
 data TaskConfig m = TaskConfig
@@ -36,7 +37,8 @@ data TaskConfig m = TaskConfig
     mIncHidden :: m IncludeHidden,
     mListMatch :: m AllowListMatching,
     mSWISHButton :: m ShowSWISHButton,
-    mLintConfig :: m [(Severity, ProblemType)],
+    mNoSingletonVariables :: m Severity,
+    mRestrictCutUsage :: m Bool,
     specifications :: [Spec]
   }
 
@@ -45,6 +47,7 @@ partitionSpecLine =
   foldl
     (flip combine)
     ( TaskConfig
+        Nothing
         Nothing
         Nothing
         Nothing
@@ -61,7 +64,8 @@ partitionSpecLine =
     combine (IncludeHiddenSpec s) spec = spec {mIncHidden = mIncHidden spec <|> Just s}
     combine (ListMatchSpec s) spec = spec {mListMatch = mListMatch spec <|> Just s}
     combine (ShowsSWISHButtonSpec s) spec = spec {mSWISHButton = mSWISHButton spec <|> Just s}
-    combine (LintConfigSpec s) spec = spec {mLintConfig = mLintConfig spec <|> Just s}
+    combine (NoSingletonVariablesSpec s) spec = spec {mNoSingletonVariables = mNoSingletonVariables spec <|> Just s}
+    combine (RestrictCutUsageSpec s) spec = spec {mRestrictCutUsage = mRestrictCutUsage spec <|> Just s}
     combine (TestSpec s) spec = spec {specifications = specifications spec ++ [s]}
 
 data Spec = Spec Visibility Visualize Expection Timeout Requirement

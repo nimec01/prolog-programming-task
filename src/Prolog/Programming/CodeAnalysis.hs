@@ -13,35 +13,35 @@ import Data.List (groupBy, intersperse, uncons)
 import Data.Maybe (mapMaybe)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause, Program, consultString)
-import Prolog.Programming.CodeAnalysis.Config (configuredRules, defaultLintConfig)
+import Prolog.Programming.CodeAnalysis.Config (configuredRules, defaultCodeAnalysisConfig)
 import Prolog.Programming.CodeAnalysis.Helper (definesSamePredicate)
-import Prolog.Programming.CodeAnalysis.Types (ConfiguredRule (..), LintConfig (..), Problem (..), Rule (..), Severity)
+import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), ConfiguredRule (..), Problem (..), Rule (..), Severity)
 import Text.PrettyPrint.Leijen.Text (Doc, brackets, indent, linebreak, text, vsep, (<+>))
 
-testCheck :: String -> IO [(Severity, Problem)]
+testCheck :: String -> IO [(Maybe Severity, Problem)]
 testCheck code = case consultString code of
   Left err -> do
     print err
     pure []
-  Right prog -> pure $ checkForProblems defaultLintConfig prog
+  Right prog -> pure $ checkForProblems defaultCodeAnalysisConfig prog
 
-checkForProblems :: LintConfig -> Program -> [(Severity, Problem)]
+checkForProblems :: CodeAnalysisConfig -> Program -> [(Maybe Severity, Problem)]
 checkForProblems cfg clauses =
   filterFirstProblemPerClause $
     checkForProblems' cfg $
       groupBy definesSamePredicate clauses
 
-checkForProblems' :: LintConfig -> [[Clause]] -> [(Severity, Problem)]
+checkForProblems' :: CodeAnalysisConfig -> [[Clause]] -> [(Maybe Severity, Problem)]
 checkForProblems' cfg = concatMap (checkPredicateDefinitionsForProblem cfg)
 
-checkPredicateDefinitionsForProblem :: LintConfig -> [Clause] -> [(Severity, Problem)]
+checkPredicateDefinitionsForProblem :: CodeAnalysisConfig -> [Clause] -> [(Maybe Severity, Problem)]
 checkPredicateDefinitionsForProblem cfg clauses =
   foldl
     (\acc configuredRule -> if null acc then map (severity configuredRule,) $ ruleDetect (rule configuredRule) clauses else acc)
     []
     $ configuredRules cfg
 
-filterFirstProblemPerClause :: [(Severity, Problem)] -> [(Severity, Problem)]
+filterFirstProblemPerClause :: [(Maybe Severity, Problem)] -> [(Maybe Severity, Problem)]
 filterFirstProblemPerClause pbs = mapMaybe (fmap fst . uncons) groupedByClause
   where
     groupedByClause = groupBy (\(_, a) (_, b) -> problemClause a == problemClause b) pbs
