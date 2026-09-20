@@ -86,12 +86,13 @@ test-suite prolog-programming-task-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Linting.Helper
       Linting.Rules.NoUnusedVariablesSpec
       Linting.Rules.RestrictCutUsageSpec
       Paths_prolog_programming_task
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HUnit
     , MonadRandom

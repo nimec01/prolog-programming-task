@@ -1,111 +1,23 @@
 module Linting.Rules.NoUnusedVariablesSpec where
 
-import Language.Prolog
-  ( Clause (..),
-    Program,
-    Term (Struct, Var),
-    VariableName (VariableName),
-  )
-import Prolog.Programming.Linting (checkForProblems)
-import Prolog.Programming.Linting.Config (defaultLintConfig)
+import Linting.Helper (shouldDetectProblemOfType, shouldNotDetectProblemOfType)
 import Prolog.Programming.Linting.Types
-  ( LintConfig (LintConfig, errorProblems, hintProblems, warnProblems),
-    Problem (Problem, problemClause, problemHint, problemType),
-    ProblemType (NoUnusedVariables),
-    Severity (..),
+  ( ProblemType (NoUnusedVariables),
   )
-import Test.Hspec (Spec, describe, it, shouldBe)
-
-config :: LintConfig
-config =
-  LintConfig
-    { hintProblems = [],
-      warnProblems = [NoUnusedVariables],
-      errorProblems = []
-    }
-
-test :: Program -> [(Severity, Problem)]
-test = checkForProblems config
+import Test.Hspec (Spec, describe, it)
 
 spec :: Spec
 spec = describe "NoUnusedVariables" $ do
-  it "warns on example 1" $ do
-    let clause =
-          Clause
-            { lhs = Struct "p" [Var (VariableName 0 "X"), Var (VariableName 0 "Y")],
-              rhs_ = [Struct "q" [Var (VariableName 0 "X")]]
-            }
-     in test [clause]
-          `shouldBe` [ ( Warn,
-                         Problem
-                           { problemType = NoUnusedVariables,
-                             problemClause = clause,
-                             problemHint = Just "Replace Y with wildcard (_) ."
-                           }
-                       )
-                     ]
-  it "warns on example 2" $ do
-    let clause =
-          Clause
-            { lhs = Struct "p" [Var (VariableName 0 "X")],
-              rhs_ =
-                [ Struct "=" [Var (VariableName 0 "X"), Struct "." [Var (VariableName 0 "Z"), Var (VariableName 0 "Zs")]],
-                  Struct "q" [Var (VariableName 0 "Zs")]
-                ]
-            }
-     in test [clause]
-          `shouldBe` [ ( Warn,
-                         Problem
-                           { problemType = NoUnusedVariables,
-                             problemClause = clause,
-                             problemHint = Just "Replace Z with wildcard (_) ."
-                           }
-                       )
-                     ]
-  it "warns on example 3" $ do
-    let clause =
-          Clause
-            { lhs = Struct "p" [Var (VariableName 0 "X")],
-              rhs_ =
-                [ Struct "=" [Var (VariableName 0 "X"), Struct "." [Var (VariableName 0 "Z"), Var (VariableName 0 "Zs")]],
-                  Struct "q" [Var (VariableName 0 "Z")]
-                ]
-            }
-     in test [clause]
-          `shouldBe` [ ( Warn,
-                         Problem
-                           { problemType = NoUnusedVariables,
-                             problemClause = clause,
-                             problemHint = Just "Replace Zs with wildcard (_) ."
-                           }
-                       )
-                     ]
-  it "doesn't warn on example 4" $ do
-    let term name = Struct name [Var (VariableName 0 "X"), Var (VariableName 0 "Y")]
-        clause =
-          Clause
-            { lhs = term "p",
-              rhs_ = [term "q"]
-            }
-     in test [clause]
-          `shouldBe` []
-  it "doesn't warn on example 5" $ do
-    let term name = Struct name [Var (VariableName 0 "X"), Var (VariableName 0 "X")]
-        clause =
-          Clause
-            { lhs = term "p",
-              rhs_ = []
-            }
-     in test [clause]
-          `shouldBe` []
-  it "doesn't warn on example 6" $ do
-    let clause =
-          Clause
-            { lhs = Struct "p" [Var (VariableName 0 "X")],
-              rhs_ =
-                [ Struct "=" [Var (VariableName 0 "X"), Struct "." [Var (VariableName 0 "Z"), Var (VariableName 0 "Zs")]],
-                  Struct "q" [Var (VariableName 0 "Z"), Var (VariableName 0 "Zs")]
-                ]
-            }
-     in test [clause]
-          `shouldBe` []
+  it "detects problem on example 1" $
+    "p(X,Y) :- q(X)." `shouldDetectProblemOfType` NoUnusedVariables
+  it "detects problem on example 2" $
+    "p(X) :- X = [Z|Zs], q(Z)." `shouldDetectProblemOfType` NoUnusedVariables
+  it "detects problem on example 3" $
+    "p(X) :- X = [Z|Zs], q(Zs)." `shouldDetectProblemOfType` NoUnusedVariables
+
+  it "doesn't detect problem on example 4" $
+    "p(X) :- q(X)." `shouldNotDetectProblemOfType` NoUnusedVariables
+  it "doesn't detect problem on example 5" $
+    "p(X,X)." `shouldNotDetectProblemOfType` NoUnusedVariables
+  it "doesn't detect problem on example 6" $
+    "p(X) :- X = [Z|Zs], q(Z,Zs)." `shouldNotDetectProblemOfType` NoUnusedVariables
