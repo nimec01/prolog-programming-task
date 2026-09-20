@@ -1,7 +1,7 @@
-module Linting.Rules.NoUnusedVariablesSpec where
+module CodeAnalysis.Rules.NoUnusedVariablesSpec where
 
-import Linting.Helper (shouldDetectProblemOfType, shouldNotDetectProblemOfType)
-import Prolog.Programming.Linting.Types
+import CodeAnalysis.Helper (shouldDetectProblemOfType, shouldNotDetectProblemOfType)
+import Prolog.Programming.CodeAnalysis.Types
   ( ProblemType (NoUnusedVariables),
   )
 import Test.Hspec (Spec, describe, it)

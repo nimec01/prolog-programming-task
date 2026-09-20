@@ -3,7 +3,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module Prolog.Programming.Linting
+module Prolog.Programming.CodeAnalysis
   ( checkForProblems,
     displayProblems,
   )
@@ -13,9 +13,9 @@ import Data.List (groupBy, intersperse, uncons)
 import Data.Maybe (mapMaybe)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause, Program, consultString)
-import Prolog.Programming.Linting.Config (configuredRules, defaultLintConfig)
-import Prolog.Programming.Linting.Helper (definesSamePredicate)
-import Prolog.Programming.Linting.Types (ConfiguredRule (..), LintConfig (..), Problem (..), Rule (..), Severity)
+import Prolog.Programming.CodeAnalysis.Config (configuredRules, defaultLintConfig)
+import Prolog.Programming.CodeAnalysis.Helper (definesSamePredicate)
+import Prolog.Programming.CodeAnalysis.Types (ConfiguredRule (..), LintConfig (..), Problem (..), Rule (..), Severity)
 import Text.PrettyPrint.Leijen.Text (Doc, brackets, indent, linebreak, text, vsep, (<+>))
 
 testCheck :: String -> IO [(Severity, Problem)]

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Prolog.Programming.Linting.Types where
+module Prolog.Programming.CodeAnalysis.Types where
 
 import Language.Prolog (Clause (..))
 

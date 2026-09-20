@@ -1,7 +1,7 @@
-module Linting.Rules.RestrictCutUsageSpec where
+module CodeAnalysis.Rules.RestrictCutUsageSpec where
 
-import Linting.Helper (shouldDetectProblemOfType, shouldNotDetectProblemOfType)
-import Prolog.Programming.Linting.Types
+import CodeAnalysis.Helper (shouldDetectProblemOfType, shouldNotDetectProblemOfType)
+import Prolog.Programming.CodeAnalysis.Types
   ( ProblemType (RestrictCutUsage),
   )
 import Test.Hspec (Spec, describe, it)

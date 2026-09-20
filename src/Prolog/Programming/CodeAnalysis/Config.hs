@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Prolog.Programming.Linting.Config
+module Prolog.Programming.CodeAnalysis.Config
   ( availableRules,
     configuredRules,
     defaultLintConfig,
@@ -10,9 +10,9 @@ where
 import Control.Applicative ((<|>))
 import Data.List (find)
 import Data.Maybe (mapMaybe)
-import Prolog.Programming.Linting.Rules.NoUnusedVariables (noUnusedVariablesRule)
-import Prolog.Programming.Linting.Rules.RestrictCutUsage (restrictCutUsageRule)
-import Prolog.Programming.Linting.Types (ConfiguredRule (..), LintConfig (..), ProblemType (NoUnusedVariables, RestrictCutUsage), Rule (..), Severity (..))
+import Prolog.Programming.CodeAnalysis.Rules.NoUnusedVariables (noUnusedVariablesRule)
+import Prolog.Programming.CodeAnalysis.Rules.RestrictCutUsage (restrictCutUsageRule)
+import Prolog.Programming.CodeAnalysis.Types (ConfiguredRule (..), LintConfig (..), ProblemType (NoUnusedVariables, RestrictCutUsage), Rule (..), Severity (..))
 
 availableRules :: [Rule]
 availableRules =

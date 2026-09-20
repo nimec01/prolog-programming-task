@@ -1,121 +1,132 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
-module Prolog.Programming.Parser (
-  parseConfig,
-  ) where
 
+module Prolog.Programming.Parser
+  ( parseConfig,
+  )
+where
+
+import Control.Arrow (second, (&&&), (>>>))
+import Control.Monad (forM, void)
+import Data.List (isPrefixOf)
+import Data.Maybe (catMaybes, fromMaybe)
+import Language.Prolog (term, terms)
+import Prolog.Programming.CodeAnalysis.Types (ProblemType, Severity)
+import qualified Prolog.Programming.CodeAnalysis.Types as LT (Severity (..))
 import Prolog.Programming.TestSpec
-
-import Control.Monad                    (forM, void)
-import Control.Arrow                    ((>>>), (&&&), second)
-
-import Data.List                        (isPrefixOf)
-import Data.Maybe                       (catMaybes, fromMaybe)
-
-import Language.Prolog                  (terms, term)
-
 import Text.Parsec
-import Prolog.Programming.Linting.Types (Severity,ProblemType)
-import qualified Prolog.Programming.Linting.Types as LT (Severity(..))
 import Text.Read (readMaybe)
 
 parseConfig ::
-    String ->
-    Either
-        ParseError
-        ( TimeoutDuration
-        , TreeStyle
-        , IncludeTask
-        , IncludeHidden
-        , AllowListMatching
-        , ShowSWISHButton
-        , [(Severity,ProblemType)]
-        , [Spec]
-        , (String, String)
-        )
+  String ->
+  Either
+    ParseError
+    ( TimeoutDuration,
+      TreeStyle,
+      IncludeTask,
+      IncludeHidden,
+      AllowListMatching,
+      ShowSWISHButton,
+      [(Severity, ProblemType)],
+      [Spec],
+      (String, String)
+    )
 parseConfig = parse configuration "(config)"
 
 configuration ::
-    Parsec
-        String
-        ()
-        ( TimeoutDuration
-        , TreeStyle
-        , IncludeTask
-        , IncludeHidden
-        , AllowListMatching
-        , ShowSWISHButton
-        , [(Severity,ProblemType)]
-        , [Spec]
-        , (String, String)
-        )
-configuration = (\(d,st,it,ih,lm,sb,dc,xs) s -> (d,st,it,ih,lm,sb,dc,xs,s)) <$> specification <*> sourceText
+  Parsec
+    String
+    ()
+    ( TimeoutDuration,
+      TreeStyle,
+      IncludeTask,
+      IncludeHidden,
+      AllowListMatching,
+      ShowSWISHButton,
+      [(Severity, ProblemType)],
+      [Spec],
+      (String, String)
+    )
+configuration = (\(d, st, it, ih, lm, sb, dc, xs) s -> (d, st, it, ih, lm, sb, dc, xs, s)) <$> specification <*> sourceText
 
 specification ::
-    Parsec
-        String
-        ()
-        ( TimeoutDuration
-        , TreeStyle
-        , IncludeTask
-        , IncludeHidden
-        , AllowListMatching
-        , ShowSWISHButton
-        , [(Severity, ProblemType)]
-        , [Spec]
-        )
+  Parsec
+    String
+    ()
+    ( TimeoutDuration,
+      TreeStyle,
+      IncludeTask,
+      IncludeHidden,
+      AllowListMatching,
+      ShowSWISHButton,
+      [(Severity, ProblemType)],
+      [Spec]
+    )
 specification = do
   lines' <- commentBlock
-  timeoutStyleAndSpecs <- zip [1 :: Integer ..] lines' `forM` \t ->
-    case parseSpecLine t of
-      Right spec -> return spec
-      Left err   -> fail (show err)
+  timeoutStyleAndSpecs <-
+    zip [1 :: Integer ..] lines' `forM` \t ->
+      case parseSpecLine t of
+        Right spec -> return spec
+        Left err -> fail (show err)
   let TaskConfig {..} = partitionSpecLine $ catMaybes timeoutStyleAndSpecs
   pure
-    ( fromMaybe 10000 mTimeout
-    , fromMaybe QueryStyle mStyle
-    , fromMaybe Yes mIncTask
-    , fromMaybe Yes mIncHidden
-    , fromMaybe True mListMatch
-    , fromMaybe False mSWISHButton
-    , fromMaybe [] mLintConfig
-    , specifications
+    ( fromMaybe 10000 mTimeout,
+      fromMaybe QueryStyle mStyle,
+      fromMaybe Yes mIncTask,
+      fromMaybe Yes mIncHidden,
+      fromMaybe True mListMatch,
+      fromMaybe False mSWISHButton,
+      fromMaybe [] mLintConfig,
+      specifications
     )
   where
     parseSpecLine :: (Integer, String) -> Either ParseError (Maybe SpecLine)
-    parseSpecLine (i, s) = parse (
-        ((Nothing <$ commentLine)
-         <|> (Just <$> ((TimeoutSpec <$> try globalTimeout)
-                        <|> TreeStyleSpec <$> try treeStyle
-                        <|> IncludeHiddenSpec <$> try includeHidden
-                        <|> IncludeTaskSpec <$> try includeTask
-                        <|> ListMatchSpec <$> try allowListMatching
-                        <|> ShowsSWISHButtonSpec <$> try showSWISHButton
-                        <|> LintConfigSpec <$> try lintConfig
-                        <|> TestSpec <$> (try newPredDeclParser <|> specLine)))
-        ) <* eof)
-        ("Specification line " ++ show i) s
+    parseSpecLine (i, s) =
+      parse
+        ( ( (Nothing <$ commentLine)
+              <|> ( Just
+                      <$> ( (TimeoutSpec <$> try globalTimeout)
+                              <|> TreeStyleSpec <$> try treeStyle
+                              <|> IncludeHiddenSpec <$> try includeHidden
+                              <|> IncludeTaskSpec <$> try includeTask
+                              <|> ListMatchSpec <$> try allowListMatching
+                              <|> ShowsSWISHButtonSpec <$> try showSWISHButton
+                              <|> LintConfigSpec <$> try lintConfig
+                              <|> TestSpec <$> (try newPredDeclParser <|> specLine)
+                          )
+                  )
+          )
+            <* eof
+        )
+        ("Specification line " ++ show i)
+        s
 
-    specLine = ((\f g h i -> f . g . h . i)
-                  <$> localTimeoutAnn
-                  <*> negativeFlag
-                  <*> withTreeFlag
-                  <*> hiddenFlag) <*> do
-        spaces
-        q <- terms
-        (do char ':' >> optional (char ' ')
-            queryWithAnswers q . map (:[]) <$> terms)
-         <|> pure (statementToCheck q)
+    specLine =
+      ( (\f g h i -> f . g . h . i)
+          <$> localTimeoutAnn
+          <*> negativeFlag
+          <*> withTreeFlag
+          <*> hiddenFlag
+      )
+        <*> do
+          spaces
+          q <- terms
+          ( do
+              char ':' >> optional (char ' ')
+              queryWithAnswers q . map (: []) <$> terms
+            )
+            <|> pure (statementToCheck q)
 
     newPredDeclParser = do
-        void $ string "new"
-        spaces
-        t <- term
-        spaces
-        void $ char ':'
-        spaces
-        desc <- many1 anyChar
-        pure $ newPredDecl t desc
+      void $ string "new"
+      spaces
+      t <- term
+      spaces
+      void $ char ':'
+      spaces
+      desc <- many1 anyChar
+      pure $ newPredDecl t desc
 
     includeHidden = do
       void $ string "Include hidden definitions:"
@@ -148,7 +159,7 @@ specification = do
       True <$ string "yes" <|> False <$ string "no"
 
     lintConfig = do
-      void $ string "Linting rules:"
+      void $ string "CodeAnalysis rules:"
       spaces
       rules <- lintRule `sepBy` char ','
       pure $ catMaybes rules
@@ -161,8 +172,8 @@ specification = do
       spaces
       pure $ (sev,) <$> rule
 
-    lintSeverity = 
-       LT.Hint <$ string "hint"
+    lintSeverity =
+      LT.Hint <$ string "hint"
         <|> LT.Warn <$ string "warn"
         <|> LT.Error <$ string "error"
 
@@ -170,28 +181,34 @@ specification = do
       ruleName <- many1 alphaNum
       pure $ readMaybe ruleName
 
-    localTimeoutAnn = option id $
-      localTimeout . read
-      <$> between (char '[') (char ']') (many1 digit) <* spaces
+    localTimeoutAnn =
+      option id $
+        localTimeout . read
+          <$> between (char '[') (char ']') (many1 digit)
+          <* spaces
 
     negativeFlag = option id $ negative <$ char '-'
 
-    hiddenFlag   = option id $
-      char '!' >> hidden
-      <$> option "" (try (between (char '(') (char ')') (many $ noneOf ")")))
+    hiddenFlag =
+      option id $
+        char '!'
+          >> hidden
+            <$> option "" (try (between (char '(') (char ')') (many $ noneOf ")")))
 
-    withTreeFlag = option id $ (char '@' >> return withTree)
-                           <|> (char '#' >> return withTreeNegative)
+    withTreeFlag =
+      option id $
+        (char '@' >> return withTree)
+          <|> (char '#' >> return withTreeNegative)
 
 commentLine :: Parsec String u String
 commentLine = spaces >> char '%' >> many anyChar
 
 commentBlock :: Parsec String u [String]
 commentBlock = do
-  let startMarker =            string "/* "
-  let separator   = endOfLine >> string " * "
-  let endMarker   = endOfLine >> string " */"
-  let content     = many $ notFollowedBy separator >> notFollowedBy endMarker >> anyToken
+  let startMarker = string "/* "
+  let separator = endOfLine >> string " * "
+  let endMarker = endOfLine >> string " */"
+  let content = many $ notFollowedBy separator >> notFollowedBy endMarker >> anyToken
   between startMarker endMarker $ content `sepBy` try separator
 
 sourceText :: Parsec String u (String, String)
@@ -200,5 +217,5 @@ sourceText = do
   let (visiblePart, hiddenPart) = breakWhen ("---" `isPrefixOf`) ls
   return (unlines visiblePart, unlines hiddenPart)
 
-breakWhen :: (a -> Bool) -> [a] -> ([a],[a])
+breakWhen :: (a -> Bool) -> [a] -> ([a], [a])
 breakWhen p = (takeWhile (not . p) &&& dropWhile (not . p)) >>> second (drop 1)

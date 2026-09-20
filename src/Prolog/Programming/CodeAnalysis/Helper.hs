@@ -1,4 +1,4 @@
-module Prolog.Programming.Linting.Helper where
+module Prolog.Programming.CodeAnalysis.Helper where
 
 import Language.Prolog (Clause (..), Term (..), VariableName (..))
 

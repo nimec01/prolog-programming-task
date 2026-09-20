@@ -1,8 +1,8 @@
-module Prolog.Programming.Linting.Rules.RestrictCutUsage (restrictCutUsageRule) where
+module Prolog.Programming.CodeAnalysis.Rules.RestrictCutUsage (restrictCutUsageRule) where
 
 import Language.Prolog (Clause (..))
-import Prolog.Programming.Linting.Helper (termContainsCut)
-import Prolog.Programming.Linting.Types (Problem (..), ProblemType (RestrictCutUsage), Rule (..))
+import Prolog.Programming.CodeAnalysis.Helper (termContainsCut)
+import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (RestrictCutUsage), Rule (..))
 
 restrictCutUsageRule :: Rule
 restrictCutUsageRule =

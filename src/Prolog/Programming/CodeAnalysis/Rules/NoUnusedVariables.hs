@@ -1,12 +1,12 @@
 {-# LANGUAGE TupleSections #-}
 
-module Prolog.Programming.Linting.Rules.NoUnusedVariables (noUnusedVariablesRule) where
+module Prolog.Programming.CodeAnalysis.Rules.NoUnusedVariables (noUnusedVariablesRule) where
 
 import Data.List (uncons, (\\))
 import Data.Maybe (mapMaybe)
 import Language.Prolog (Clause (..), Term (..))
-import Prolog.Programming.Linting.Helper (namedVariablesInTerm)
-import Prolog.Programming.Linting.Types (Problem (..), ProblemType (NoUnusedVariables), Rule (..))
+import Prolog.Programming.CodeAnalysis.Helper (namedVariablesInTerm)
+import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (NoUnusedVariables), Rule (..))
 
 noUnusedVariablesRule :: Rule
 noUnusedVariablesRule =

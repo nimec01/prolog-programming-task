@@ -1,8 +1,8 @@
-module Linting.Helper where
+module CodeAnalysis.Helper where
 
 import Language.Prolog (consultString)
-import Prolog.Programming.Linting (checkForProblems)
-import Prolog.Programming.Linting.Types (LintConfig (..), Problem (problemType), ProblemType, Severity (..))
+import Prolog.Programming.CodeAnalysis (checkForProblems)
+import Prolog.Programming.CodeAnalysis.Types (LintConfig (..), Problem (problemType), ProblemType, Severity (..))
 import Test.HUnit (assertFailure)
 import Test.Hspec (Expectation)
 
