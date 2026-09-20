@@ -31,8 +31,7 @@ data Problem = Problem
   deriving (Show)
 
 data Rule = Rule
-  { ruleDetect :: Severity -> [Clause] -> [Problem],
-    ruleProblemType :: ProblemType
+  { ruleDetect :: Severity -> [Clause] -> [Problem]
   }
 
 data CodeAnalysisConfig = CodeAnalysisConfig

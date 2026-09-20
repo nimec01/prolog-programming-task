@@ -15,8 +15,7 @@ import Text.PrettyPrint.Leijen.Text (brackets, hsep, indent, linebreak, string, 
 noSingletonVariablesRule :: Rule
 noSingletonVariablesRule =
   Rule
-    { ruleDetect = detect,
-      ruleProblemType = NoSingletonVariables
+    { ruleDetect = detect
     }
 
 detect :: Severity -> [Clause] -> [Problem]

@@ -11,8 +11,7 @@ import Text.PrettyPrint.Leijen.Text (brackets, hsep, indent, linebreak, string, 
 restrictCutUsageRule :: Rule
 restrictCutUsageRule =
   Rule
-    { ruleDetect = detect,
-      ruleProblemType = RestrictCutUsage
+    { ruleDetect = detect
     }
 
 detect :: Severity -> [Clause] -> [Problem]
