@@ -55,3 +55,5 @@ spec = describe "NoSingletonVariables" $ do
     doesNotDetectProblem "p(X,Y) :- X \\= Y."
   it "detects problem on example 15" $
     detectsProblem "p(X,f(Y)) :- g(X)."
+  it "doesn't detect problem on example 16" $
+    doesNotDetectProblem "p(X,Y) :- X > Y."
