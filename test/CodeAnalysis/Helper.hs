@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-
 module CodeAnalysis.Helper where
 
 import Language.Prolog (consultString)
