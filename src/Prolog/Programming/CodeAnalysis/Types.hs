@@ -13,8 +13,8 @@ import Text.PrettyPrint.Leijen.Text (Doc)
 -- | Violation found in code
 data Problem = Problem
   { -- | Clause the violation appears in
-    -- | User-facing explanation of the violation
     problemClause :: Clause,
+    -- | User-facing explanation of the violation
     problemDisplay :: Doc
   }
   deriving (Show)
