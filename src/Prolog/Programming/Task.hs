@@ -139,7 +139,12 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
               <$$> matchReport
           pure newDefs
 
-      case consultStringsAndFilter visible_facts (taskFilter includeTask inProg) hidden_facts (hiddenFilter includeHidden inProg) of
+      case consultStringsAndFilter
+        visible_facts
+        (taskFilter includeTask inProg)
+        hidden_facts
+        (hiddenFilter includeHidden inProg)
+       of
         Left err -> reject . text . pack $ show err
         Right factProg -> do
           testResult <- liftIO $ testRunner globalTO factProg inProg specs newDefs
@@ -158,7 +163,9 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
                   (line <> describeSpec t
                     <> nested (line <> text "*it appears to be non-terminating* (test case timeout)")
                     <> line <> if not (null ts)
-                      then text (pack $ show (length ts) ++ " additional test "++ plural (length ts) "case" "cases"++" also timed out")
+                      then text (pack $
+                        show (length ts) ++ " additional test "
+                          ++ plural (length ts) "case" "cases"++" also timed out")
                       else empty
                   )
             (Aborted reason,(passed,notRun)) -> do
@@ -280,14 +287,14 @@ requiresNewPredicates :: [Spec] -> Bool
 requiresNewPredicates = any isNewPredDecl
 
 findNewPredicateDefs :: [Spec] -> [Clause] -> (Doc, Maybe [(Term,Atom)])
-findNewPredicateDefs specs cls = (report,result)
+findNewPredicateDefs specs clauses = (report,result)
   where
     newDecls = mapMaybe extractNewDeclArgs specs
     extractNewDeclArgs (Spec _ _ _ _ (NewPredDecl tl desc)) = Just (tl,desc)
     extractNewDeclArgs (Spec _ _ _ _ QueryWithAnswers{}) = Nothing
     extractNewDeclArgs (Spec _ _ _ _ StatementToCheck{}) = Nothing
 
-    clauseHeads = nub $ termHead . lhs <$> cls
+    clauseHeads = nub $ termHead . lhs <$> clauses
 
     matching = zipWith match newDecls (map Just clauseHeads ++ repeat Nothing)
     report = vcat $ map reportMatch matching
@@ -317,7 +324,14 @@ reportMatch (WrongArity (desc,expectedAr) (tr,ar)) =
     <$$> indent 4 (
       text ("Trying to use your definition "<> pack (show tr) <>" but the predicate does not have the correct arity.")
       <$$>  text (pack $ unwords
-        ["Expected a predicate with",show expectedAr, plural expectedAr "argument," "arguments," ,"but",show tr, "has", show ar++"."]
+        [ "Expected a predicate with"
+        , show expectedAr
+        , plural expectedAr "argument," "arguments,"
+        , "but"
+        , show tr
+        , "has"
+        , show ar++"."
+        ]
       )
     )
 reportMatch (MissingPredicate desc) = text $ pack $ "- " <> desc <> ": no definition found"
@@ -328,11 +342,11 @@ grabFormatting ResolutionStyle = resolutionStyle
 
 containsHeadTailPattern :: Program -> Maybe Clause
 containsHeadTailPattern [] = Nothing
-containsHeadTailPattern (clause@(Clause hd gs) : cls) =
+containsHeadTailPattern (clause@(Clause hd gs) : clauses) =
   case hasHeadTailPattern hd <> mconcat (map hasHeadTailPattern gs) of
     PatternFound -> Just clause
-    DontKnow -> containsHeadTailPattern cls
-containsHeadTailPattern (ClauseFn{} : cls) = containsHeadTailPattern cls
+    DontKnow -> containsHeadTailPattern clauses
+containsHeadTailPattern (ClauseFn{} : clauses) = containsHeadTailPattern clauses
 
 hasHeadTailPattern :: Term -> HasHeadTailPattern
 hasHeadTailPattern (Struct "." [_,Var _]) = PatternFound
