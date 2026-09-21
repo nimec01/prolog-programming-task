@@ -1,6 +1,5 @@
 module Prolog.Programming.CodeAnalysis.Types
-  ( ProblemType (..),
-    Problem (..),
+  ( Problem (..),
     Rule,
     CodeAnalysisConfig (..),
     Severity (..),
@@ -11,17 +10,9 @@ where
 import Language.Prolog (Clause (..))
 import Text.PrettyPrint.Leijen.Text (Doc)
 
--- | Type of violation
-data ProblemType
-  = NoSingletonVariables
-  | RestrictCutUsage
-  deriving (Show, Eq)
-
 -- | Violation found in code
 data Problem = Problem
-  { -- | Type of violation
-    problemType :: ProblemType,
-    -- | Clause the violation appears in
+  { -- | Clause the violation appears in
     -- | User-facing explanation of the violation
     problemClause :: Clause,
     problemDisplay :: Doc

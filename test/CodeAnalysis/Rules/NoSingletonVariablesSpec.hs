@@ -1,9 +1,9 @@
 module CodeAnalysis.Rules.NoSingletonVariablesSpec where
 
-import CodeAnalysis.Helper (shouldDetectProblemOfType, shouldNotDetectProblemOfType)
+import CodeAnalysis.Helper (shouldDetectProblemsStrict, shouldNotDetectProblems)
+import Data.List (isInfixOf)
 import Prolog.Programming.CodeAnalysis.Types
   ( CodeAnalysisConfig (..),
-    ProblemType (NoSingletonVariables),
     Severity (Warn),
   )
 import Test.Hspec (Expectation, Spec, describe, it)
@@ -15,11 +15,14 @@ caConfig =
       restrictCutUsage = False
     }
 
+detect :: String -> Bool
+detect = isInfixOf "includes the singleton variable"
+
 detectsProblem :: String -> Expectation
-detectsProblem = shouldDetectProblemOfType caConfig NoSingletonVariables
+detectsProblem = shouldDetectProblemsStrict caConfig [detect]
 
 doesNotDetectProblem :: String -> Expectation
-doesNotDetectProblem = shouldNotDetectProblemOfType caConfig NoSingletonVariables
+doesNotDetectProblem = shouldNotDetectProblems caConfig [detect]
 
 spec :: Spec
 spec = describe "NoSingletonVariables" $ do

@@ -1,9 +1,9 @@
 module CodeAnalysis.Rules.RestrictCutUsageSpec where
 
-import CodeAnalysis.Helper (shouldDetectProblemOfType, shouldNotDetectProblemOfType)
+import CodeAnalysis.Helper (shouldDetectProblemsStrict, shouldNotDetectProblems)
+import Data.List (isInfixOf)
 import Prolog.Programming.CodeAnalysis.Types
   ( CodeAnalysisConfig (..),
-    ProblemType (RestrictCutUsage),
   )
 import Test.Hspec (Expectation, Spec, describe, it)
 
@@ -14,11 +14,14 @@ caConfig =
       restrictCutUsage = True
     }
 
+detect :: String -> Bool
+detect = isInfixOf "makes use of the cut (!) operator"
+
 detectsProblem :: String -> Expectation
-detectsProblem = shouldDetectProblemOfType caConfig RestrictCutUsage
+detectsProblem = shouldDetectProblemsStrict caConfig [detect]
 
 doesNotDetectProblem :: String -> Expectation
-doesNotDetectProblem = shouldNotDetectProblemOfType caConfig RestrictCutUsage
+doesNotDetectProblem = shouldNotDetectProblems caConfig [detect]
 
 spec :: Spec
 spec = describe "RestrictCutUsage" $ do

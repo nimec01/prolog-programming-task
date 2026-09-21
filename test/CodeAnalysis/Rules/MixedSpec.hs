@@ -1,9 +1,9 @@
 module CodeAnalysis.Rules.MixedSpec where
 
-import CodeAnalysis.Helper (shouldDetectProblemsOfTypeStrict)
+import CodeAnalysis.Helper (shouldDetectProblemsStrict)
+import Data.List (isInfixOf)
 import Prolog.Programming.CodeAnalysis.Types
   ( CodeAnalysisConfig (..),
-    ProblemType (..),
     Severity (Warn),
   )
 import Test.Hspec (Expectation, Spec, describe, it)
@@ -16,7 +16,12 @@ caConfig =
     }
 
 detectsProblems :: String -> Expectation
-detectsProblems = shouldDetectProblemsOfTypeStrict caConfig [NoSingletonVariables, RestrictCutUsage]
+detectsProblems =
+  shouldDetectProblemsStrict
+    caConfig
+    [ isInfixOf "includes the singleton variable",
+      isInfixOf "makes use of the cut (!) operator"
+    ]
 
 spec :: Spec
 spec = describe "Mixed rule tests" $ do

@@ -4,32 +4,25 @@ module CodeAnalysis.Helper where
 
 import Language.Prolog (consultString)
 import Prolog.Programming.CodeAnalysis (checkForProblems)
-import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), Problem (problemType), ProblemType, WithSeverity (..))
+import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), Problem (problemDisplay), WithSeverity (..))
 import Test.HUnit (assertFailure)
 import Test.Hspec (Expectation)
 
-shouldDetectProblemOfType :: CodeAnalysisConfig -> ProblemType -> String -> Expectation
-shouldDetectProblemOfType cfg pt code = case consultString code of
-  Left err -> assertFailure $ "Failed to parse prolog program:\n" ++ show err
-  Right prog -> case checkForProblems cfg prog of
-    [] -> assertFailure "No problem with provided type found"
-    pbs | any (\WithSeverity {..} -> pt /= problemType value) pbs -> assertFailure "Found problem does not match provided one."
-    _ -> pure ()
-
-shouldNotDetectProblemOfType :: CodeAnalysisConfig -> ProblemType -> String -> Expectation
-shouldNotDetectProblemOfType cfg pt code = case consultString code of
-  Left err -> assertFailure $ "Failed to parse prolog program:\n" ++ show err
-  Right prog -> case checkForProblems cfg prog of
-    [] -> pure ()
-    pbs | any (\WithSeverity {..} -> pt == problemType value) pbs -> assertFailure "Found problem that should not exist."
-    _ -> pure ()
-
-shouldDetectProblemsOfTypeStrict :: CodeAnalysisConfig -> [ProblemType] -> String -> Expectation
-shouldDetectProblemsOfTypeStrict cfg pts code = case consultString code of
+shouldDetectProblemsStrict :: CodeAnalysisConfig -> [String -> Bool] -> String -> Expectation
+shouldDetectProblemsStrict cfg pts code = case consultString code of
   Left err -> assertFailure $ "Failed to parse prolog program:\n" ++ show err
   Right prog -> case checkForProblems cfg prog of
     [] -> assertFailure "No problems found"
     pbs
       | length pbs /= length pts -> assertFailure "More or less problems found than provided"
-      | all (\t -> any ((== t) . problemType . value) pbs) pts -> pure ()
-      | otherwise -> assertFailure "Problem types do not match"
+      | all (\t -> any (t . show . problemDisplay . value) pbs) pts -> pure ()
+      | otherwise -> assertFailure "Found problems that does not match"
+
+shouldNotDetectProblems :: CodeAnalysisConfig -> [String -> Bool] -> String -> Expectation
+shouldNotDetectProblems cfg pts code = case consultString code of
+  Left err -> assertFailure $ "Failed to parse prolog program:\n" ++ show err
+  Right prog -> case checkForProblems cfg prog of
+    [] -> pure ()
+    pbs
+      | any (\t -> any (t . show . problemDisplay . value) pbs) pts -> assertFailure "Detected problem that should not occur"
+      | otherwise -> pure ()

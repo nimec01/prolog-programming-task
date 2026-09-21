@@ -8,7 +8,7 @@ import Data.Map (Map)
 import qualified Data.Map as Map (empty, filter, keys, singleton, unionWith)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause (..), Term (..), VariableName (..))
-import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (NoSingletonVariables), Rule)
+import Prolog.Programming.CodeAnalysis.Types (Problem (..), Rule)
 import Text.PrettyPrint.Leijen.Text (indent, linebreak, string, vsep)
 
 noSingletonVariablesRule :: Rule
@@ -26,8 +26,7 @@ countVariables = everything (Map.unionWith (+)) $ mkQ Map.empty count
 toProblem :: Clause -> String -> Problem
 toProblem clause var =
   Problem
-    { problemType = NoSingletonVariables,
-      problemClause = clause,
+    { problemClause = clause,
       problemDisplay =
         vsep
           [ string "Your clause",

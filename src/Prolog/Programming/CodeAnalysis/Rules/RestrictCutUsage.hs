@@ -7,7 +7,7 @@ import Data.Data (Data)
 import Data.Generics (everything, mkQ)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause (..), Term (..))
-import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (RestrictCutUsage), Rule)
+import Prolog.Programming.CodeAnalysis.Types (Problem (..), Rule)
 import Text.PrettyPrint.Leijen.Text (hsep, indent, linebreak, string, vsep)
 
 restrictCutUsageRule :: Rule
@@ -27,8 +27,7 @@ containsCut = everything (||) $ mkQ False $ \case
 toProblem :: Clause -> Problem
 toProblem clause =
   Problem
-    { problemType = RestrictCutUsage,
-      problemClause = clause,
+    { problemClause = clause,
       problemDisplay =
         vsep
           [ string "Your clause",
