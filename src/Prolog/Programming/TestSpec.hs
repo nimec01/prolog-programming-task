@@ -62,7 +62,7 @@ partitionSpecLine =
     combine (IncludeHiddenSpec s) spec = spec { mIncHidden = mIncHidden spec <|> Just s }
     combine (ListMatchSpec s) spec = spec { mListMatch = mListMatch spec <|> Just s }
     combine (ShowsSWISHButtonSpec s) spec = spec { mSWISHButton = mSWISHButton spec <|> Just s }
-    combine (SingletonVariablesSeveritySpec s) spec = 
+    combine (SingletonVariablesSeveritySpec s) spec =
       spec {mSingletonVariablesSeverity = mSingletonVariablesSeverity spec <|> Just s}
     combine (AllowCutUsageSpec s) spec = spec {mAllowCutUsage = mAllowCutUsage spec <|> Just s}
     combine (TestSpec s) spec = spec { specifications = specifications spec ++ [s] }
