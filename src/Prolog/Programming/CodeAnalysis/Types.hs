@@ -1,7 +1,7 @@
 module Prolog.Programming.CodeAnalysis.Types
   ( ProblemType (..),
     Problem (..),
-    Rule (..),
+    Rule,
     CodeAnalysisConfig (..),
     Severity (..),
     WithSeverity (..),
@@ -28,11 +28,8 @@ data Problem = Problem
   }
   deriving (Show)
 
--- | Definition for a code analysis check
-newtype Rule = Rule
-  { -- | Function that checks for violations in a given clause
-    ruleDetect :: Clause -> [Problem]
-  }
+-- | Definition for a code analysis checker that looks for violations in a given clause
+type Rule = Clause -> [Problem]
 
 -- | Configuration for code analysis checks
 data CodeAnalysisConfig = CodeAnalysisConfig

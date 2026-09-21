@@ -5,17 +5,11 @@ module Prolog.Programming.CodeAnalysis.Rules.RestrictCutUsage (restrictCutUsageR
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause (..))
 import Prolog.Programming.CodeAnalysis.Helper (containsCut)
-import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (RestrictCutUsage), Rule (..))
+import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (RestrictCutUsage), Rule)
 import Text.PrettyPrint.Leijen.Text (hsep, indent, linebreak, string, vsep)
 
 restrictCutUsageRule :: Rule
-restrictCutUsageRule =
-  Rule
-    { ruleDetect = detect
-    }
-
-detect :: Clause -> [Problem]
-detect clause
+restrictCutUsageRule clause
   | cutExistsInClause clause = [toProblem clause]
   | otherwise = []
 

@@ -13,7 +13,6 @@ import Prolog.Programming.CodeAnalysis.Config (configuredRules, defaultCodeAnaly
 import Prolog.Programming.CodeAnalysis.Types
   ( CodeAnalysisConfig (..),
     Problem (..),
-    Rule (..),
     Severity (Error),
     WithSeverity (..),
   )
@@ -30,7 +29,7 @@ checkForProblems :: CodeAnalysisConfig -> Program -> [WithSeverity Problem]
 checkForProblems cfg =
   concatMap
     ( \c ->
-        concatMap (\WithSeverity {..} -> (`WithSeverity` severity) <$> ruleDetect value c) $
+        concatMap (\WithSeverity {..} -> (`WithSeverity` severity) <$> value c) $
           configuredRules cfg
     )
 
