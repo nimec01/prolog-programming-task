@@ -10,7 +10,7 @@ import Test.Hspec (Expectation, Spec, describe, it)
 caConfig :: CodeAnalysisConfig
 caConfig =
   CodeAnalysisConfig
-    { noSingletonVariables = Nothing,
+    { singletonVariablesSeverity = Nothing,
       allowCutUsage = False
     }
 

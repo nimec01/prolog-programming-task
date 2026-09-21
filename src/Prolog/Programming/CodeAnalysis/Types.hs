@@ -24,8 +24,8 @@ type Rule = Clause -> [Problem]
 
 -- | Configuration for code analysis checks
 data CodeAnalysisConfig = CodeAnalysisConfig
-  { -- | Whether singleton variables are allowed or not and what severity to use while reporting.
-    noSingletonVariables :: Maybe Severity,
+  { -- | The severity to use when reporting singleton variables. `Nothing` results in no singleton variables being reported.
+    singletonVariablesSeverity :: Maybe Severity,
     -- | Whether cuts are allowed to be used or not
     allowCutUsage :: Bool
   }

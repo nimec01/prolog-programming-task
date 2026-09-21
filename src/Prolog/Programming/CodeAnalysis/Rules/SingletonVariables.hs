@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
-module Prolog.Programming.CodeAnalysis.Rules.NoSingletonVariables (noSingletonVariablesRule) where
+module Prolog.Programming.CodeAnalysis.Rules.SingletonVariables (singletonVariablesRule) where
 
 import Data.Generics (Data, everything, mkQ)
 import Data.Map (Map)
@@ -11,8 +11,8 @@ import Language.Prolog (Clause (..), Term (..), VariableName (..))
 import Prolog.Programming.CodeAnalysis.Types (Problem (..), Rule)
 import Text.PrettyPrint.Leijen.Text (indent, linebreak, string, vsep)
 
-noSingletonVariablesRule :: Rule
-noSingletonVariablesRule clause = map (toProblem clause) singletonVariables
+singletonVariablesRule :: Rule
+singletonVariablesRule clause = map (toProblem clause) singletonVariables
   where
     singletonVariables = Map.keys . Map.filter (== 1) $ countVariables clause
 

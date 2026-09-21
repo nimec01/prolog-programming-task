@@ -78,7 +78,7 @@ specification = do
       fromMaybe True mListMatch,
       fromMaybe False mSWISHButton,
       CodeAnalysisConfig
-        { noSingletonVariables = mNoSingletonVariables
+        { singletonVariablesSeverity = fromMaybe Nothing mSingletonVariablesSeverity
         , allowCutUsage = fromMaybe True mAllowCutUsage
         },
       specifications
@@ -93,7 +93,7 @@ specification = do
                         <|> IncludeTaskSpec <$> try includeTask
                         <|> ListMatchSpec <$> try allowListMatching
                         <|> ShowsSWISHButtonSpec <$> try showSWISHButton
-                        <|> NoSingletonVariablesSpec <$> try noSingletonVariablesP
+                        <|> SingletonVariablesSeveritySpec <$> try singletonVariablesSeverityP
                         <|> AllowCutUsageSpec <$> try allowCutUsageP
                         <|> TestSpec <$> (try newPredDeclParser <|> specLine)))
         ) <* eof)
@@ -150,20 +150,18 @@ specification = do
       spaces
       True <$ string "yes" <|> False <$ string "no"
 
-    noSingletonVariablesP = do
+    singletonVariablesSeverityP = do
       void $ string "Detect Singleton Variables:"
       spaces
-      problemSeverity
+      Nothing <$ string "off"
+        <|> Just CA.Hint <$ string "hint"
+        <|> Just CA.Warn <$ string "warn"
+        <|> Just CA.Error <$ string "error"
 
     allowCutUsageP = do
       void $ string "Allow usage of cuts:"
       spaces
       True <$ string "yes" <|> False <$ string "no"
-
-    problemSeverity =
-      CA.Hint <$ string "hint"
-        <|> CA.Warn <$ string "warn"
-        <|> CA.Error <$ string "error"
 
     localTimeoutAnn = option id $
       localTimeout . read

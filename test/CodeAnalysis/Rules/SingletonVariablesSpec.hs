@@ -1,4 +1,4 @@
-module CodeAnalysis.Rules.NoSingletonVariablesSpec where
+module CodeAnalysis.Rules.SingletonVariablesSpec where
 
 import CodeAnalysis.Helper (shouldDetectProblemsStrict, shouldNotDetectProblems)
 import Data.List (isInfixOf)
@@ -11,7 +11,7 @@ import Test.Hspec (Expectation, Spec, describe, it)
 caConfig :: CodeAnalysisConfig
 caConfig =
   CodeAnalysisConfig
-    { noSingletonVariables = Just Warn,
+    { singletonVariablesSeverity = Just Warn,
       allowCutUsage = False
     }
 
