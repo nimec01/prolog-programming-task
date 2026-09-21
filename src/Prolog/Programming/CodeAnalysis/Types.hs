@@ -3,8 +3,8 @@ module Prolog.Programming.CodeAnalysis.Types
     Problem (..),
     Rule (..),
     CodeAnalysisConfig (..),
-    ConfiguredRule (..),
     Severity (..),
+    WithSeverity (..),
   )
 where
 
@@ -35,7 +35,7 @@ data CodeAnalysisConfig = CodeAnalysisConfig
 data Severity = Hint | Warn | Error
   deriving (Show, Eq)
 
-data ConfiguredRule = ConfiguredRule
-  { rule :: Rule,
+data WithSeverity a = WithSeverity
+  { value :: a,
     severity :: Severity
   }

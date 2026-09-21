@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Prolog.Programming.CodeAnalysis
@@ -10,26 +10,41 @@ where
 import Data.Text.Lazy (pack)
 import Language.Prolog (Program, consultString)
 import Prolog.Programming.CodeAnalysis.Config (configuredRules, defaultCodeAnalysisConfig)
-import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), ConfiguredRule (..), Problem (..), Rule (..), Severity (Error))
+import Prolog.Programming.CodeAnalysis.Types
+  ( CodeAnalysisConfig (..),
+    Problem (..),
+    Rule (..),
+    Severity (Error),
+    WithSeverity (..),
+  )
 import Text.PrettyPrint.Leijen.Text (Doc, brackets, string, vsep, (<$$>))
 
-testCheck :: String -> IO [(Problem, Severity)]
+testCheck :: String -> IO [WithSeverity Problem]
 testCheck code = case consultString code of
   Left err -> do
     print err
     pure []
   Right prog -> pure $ checkForProblems defaultCodeAnalysisConfig prog
 
-checkForProblems :: CodeAnalysisConfig -> Program -> [(Problem, Severity)]
-checkForProblems cfg = concatMap (\c -> concatMap (\cr -> (,severity cr) <$> ruleDetect (rule cr) c) $ configuredRules cfg)
+checkForProblems :: CodeAnalysisConfig -> Program -> [WithSeverity Problem]
+checkForProblems cfg =
+  concatMap
+    ( \c ->
+        concatMap (\WithSeverity {..} -> (`WithSeverity` severity) <$> ruleDetect value c) $
+          configuredRules cfg
+    )
 
-displayProblems :: [(Problem, Severity)] -> Either Doc Doc
+displayProblems :: [WithSeverity Problem] -> Either Doc Doc
 displayProblems pbs =
   cons $
     vsep $
-      map (\(p, sev) -> padEnd 30 "-" (brackets $ string $ pack $ show sev) <$$> problemDisplay p) pbs
+      map
+        ( \WithSeverity {..} ->
+            padEnd 30 "-" (brackets $ string $ pack $ show severity) <$$> problemDisplay value
+        )
+        pbs
   where
-    cons = if any ((== Error) . snd) pbs then Left else Right
+    cons = if any ((== Error) . severity) pbs then Left else Right
 
 padEnd :: Int -> String -> Doc -> Doc
 padEnd maxWidth filler x = x <> mconcat (replicate (max 0 (maxWidth - width x)) $ string $ pack filler)

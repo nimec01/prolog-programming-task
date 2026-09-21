@@ -9,11 +9,12 @@ where
 import Data.List (singleton)
 import Prolog.Programming.CodeAnalysis.Rules.NoSingletonVariables (noSingletonVariablesRule)
 import Prolog.Programming.CodeAnalysis.Rules.RestrictCutUsage (restrictCutUsageRule)
-import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), ConfiguredRule (..), Severity (..))
+import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), Rule, Severity (..), WithSeverity (..))
 
-configuredRules :: CodeAnalysisConfig -> [ConfiguredRule]
+configuredRules :: CodeAnalysisConfig -> [WithSeverity Rule]
 configuredRules CodeAnalysisConfig {..} =
-  ([ConfiguredRule restrictCutUsageRule Error | restrictCutUsage]) ++ maybe [] (singleton . ConfiguredRule noSingletonVariablesRule) noSingletonVariables
+  ([WithSeverity restrictCutUsageRule Error | restrictCutUsage])
+    ++ maybe [] (singleton . WithSeverity noSingletonVariablesRule) noSingletonVariables
 
 defaultCodeAnalysisConfig :: CodeAnalysisConfig
 defaultCodeAnalysisConfig =
