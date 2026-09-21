@@ -26,8 +26,8 @@ exampleConfig = Config
  * % Show SWISH button: [ yes | no ]
  * % Whether to check for singleton variables and what severity to used. Defaults to no detection.
  * % Detect Singleton Variables: [ hint | warn | error ]
- * % Whether or not to forbid usage of the cut operator. Defaults to allow.
- * % Restrict Cut Usage: [ yes | no ]
+ * % Whether or not to allow usage of the cut operator. Defaults to allow.
+ * % Allow usage of cuts: [ yes | no ]
  * % prefixing a test with [<time out in ms>] sets a local timeout for that test
  * a_predicate(Foo,Bar): a_predicate(expected_foo1,expected_bar1), a_predicate(expected_foo2,expected_bar2)
  * a_statement_that_has_to_be_true

@@ -79,7 +79,7 @@ specification = do
       fromMaybe False mSWISHButton,
       CodeAnalysisConfig
         { noSingletonVariables = mNoSingletonVariables
-        , restrictCutUsage = fromMaybe False mRestrictCutUsage
+        , allowCutUsage = fromMaybe True mAllowCutUsage
         },
       specifications
     )
@@ -94,7 +94,7 @@ specification = do
                         <|> ListMatchSpec <$> try allowListMatching
                         <|> ShowsSWISHButtonSpec <$> try showSWISHButton
                         <|> NoSingletonVariablesSpec <$> try noSingletonVariablesP
-                        <|> RestrictCutUsageSpec <$> try restrictCutUsageP
+                        <|> AllowCutUsageSpec <$> try allowCutUsageP
                         <|> TestSpec <$> (try newPredDeclParser <|> specLine)))
         ) <* eof)
         ("Specification line " ++ show i) s
@@ -155,8 +155,8 @@ specification = do
       spaces
       problemSeverity
 
-    restrictCutUsageP = do
-      void $ string "Restrict Cut Usage:"
+    allowCutUsageP = do
+      void $ string "Allow usage of cuts:"
       spaces
       True <$ string "yes" <|> False <$ string "no"
 

@@ -1,4 +1,4 @@
-module CodeAnalysis.Rules.RestrictCutUsageSpec where
+module CodeAnalysis.Rules.CutsSpec where
 
 import CodeAnalysis.Helper (shouldDetectProblemsStrict, shouldNotDetectProblems)
 import Data.List (isInfixOf)
@@ -11,7 +11,7 @@ caConfig :: CodeAnalysisConfig
 caConfig =
   CodeAnalysisConfig
     { noSingletonVariables = Nothing,
-      restrictCutUsage = True
+      allowCutUsage = False
     }
 
 detect :: String -> Bool
@@ -24,7 +24,7 @@ doesNotDetectProblem :: String -> Expectation
 doesNotDetectProblem = shouldNotDetectProblems caConfig [detect]
 
 spec :: Spec
-spec = describe "RestrictCutUsage" $ do
+spec = describe "Cuts" $ do
   it "detects problem on example 1" $
     detectsProblem "p(X) :- q(X), !."
 

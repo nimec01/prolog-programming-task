@@ -12,7 +12,7 @@ caConfig :: CodeAnalysisConfig
 caConfig =
   CodeAnalysisConfig
     { noSingletonVariables = Just Warn,
-      restrictCutUsage = False
+      allowCutUsage = False
     }
 
 detect :: String -> Bool

@@ -32,8 +32,8 @@ library
       Prolog.Programming.CodeAnalysis.Types
       Prolog.Programming.CodeAnalysis.Config
   other-modules:
+      Prolog.Programming.CodeAnalysis.Rules.Cuts
       Prolog.Programming.CodeAnalysis.Rules.NoSingletonVariables
-      Prolog.Programming.CodeAnalysis.Rules.RestrictCutUsage
       Prolog.Programming.ExampleConfig
       Prolog.Programming.Helper
       Prolog.Programming.Parser
@@ -88,9 +88,9 @@ test-suite prolog-programming-task-test
   main-is: Spec.hs
   other-modules:
       CodeAnalysis.Helper
+      CodeAnalysis.Rules.CutsSpec
       CodeAnalysis.Rules.MixedSpec
       CodeAnalysis.Rules.NoSingletonVariablesSpec
-      CodeAnalysis.Rules.RestrictCutUsageSpec
       Paths_prolog_programming_task
   hs-source-dirs:
       test

@@ -12,7 +12,7 @@ caConfig :: CodeAnalysisConfig
 caConfig =
   CodeAnalysisConfig
     { noSingletonVariables = Just Warn,
-      restrictCutUsage = True
+      allowCutUsage = False
     }
 
 detectsProblems :: String -> Expectation

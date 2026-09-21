@@ -25,7 +25,7 @@ data SpecLine
   | ListMatchSpec AllowListMatching
   | ShowsSWISHButtonSpec ShowSWISHButton
   | NoSingletonVariablesSpec Severity
-  | RestrictCutUsageSpec Bool
+  | AllowCutUsageSpec Bool
   | TestSpec Spec
 
 data TaskConfig m = TaskConfig
@@ -36,7 +36,7 @@ data TaskConfig m = TaskConfig
   , mListMatch :: m AllowListMatching
   , mSWISHButton :: m ShowSWISHButton
   , mNoSingletonVariables :: m Severity
-  , mRestrictCutUsage :: m Bool
+  , mAllowCutUsage :: m Bool
   , specifications :: [Spec]
   }
 
@@ -63,7 +63,7 @@ partitionSpecLine =
     combine (ListMatchSpec s) spec = spec { mListMatch = mListMatch spec <|> Just s }
     combine (ShowsSWISHButtonSpec s) spec = spec { mSWISHButton = mSWISHButton spec <|> Just s }
     combine (NoSingletonVariablesSpec s) spec = spec {mNoSingletonVariables = mNoSingletonVariables spec <|> Just s}
-    combine (RestrictCutUsageSpec s) spec = spec {mRestrictCutUsage = mRestrictCutUsage spec <|> Just s}
+    combine (AllowCutUsageSpec s) spec = spec {mAllowCutUsage = mAllowCutUsage spec <|> Just s}
     combine (TestSpec s) spec = spec { specifications = specifications spec ++ [s] }
 
 

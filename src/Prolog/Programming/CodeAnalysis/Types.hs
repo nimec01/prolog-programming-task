@@ -27,7 +27,7 @@ data CodeAnalysisConfig = CodeAnalysisConfig
   { -- | Whether singleton variables are allowed or not and what severity to use while reporting.
     noSingletonVariables :: Maybe Severity,
     -- | Whether cuts are allowed to be used or not
-    restrictCutUsage :: Bool
+    allowCutUsage :: Bool
   }
 
 -- | Classification for seriousness of violation
