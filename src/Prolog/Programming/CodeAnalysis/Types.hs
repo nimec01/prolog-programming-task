@@ -34,11 +34,17 @@ data CodeAnalysisConfig = CodeAnalysisConfig
 --
 -- The differentiation between `Hint` and `Warn` is of personal taste.
 data Severity
-  = -- | Optional improvements that might increase style or readability
+  = -- | Minor violation of standard code conventions
+    --
+    -- Example violation: redundant braces
     Hint
-  | -- | Recommended improvements that should keep program semantics
+  | -- | Moderate violation of standard code conventions
+    --
+    -- Example violation: working at the end of a list even though it is not necessary
     Warn
-  | -- | Serious issue whose fix might change program semantics
+  | -- | Severe violation of standard code conventions or task restrictions
+    --
+    -- Example violation: cut operator was used even though the use of it was forbidden
     Error
   deriving (Show, Eq)
 
