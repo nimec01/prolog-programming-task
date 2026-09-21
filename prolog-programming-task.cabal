@@ -32,7 +32,6 @@ library
       Prolog.Programming.CodeAnalysis.Types
       Prolog.Programming.CodeAnalysis.Config
   other-modules:
-      Prolog.Programming.CodeAnalysis.Helper
       Prolog.Programming.CodeAnalysis.Rules.NoSingletonVariables
       Prolog.Programming.CodeAnalysis.Rules.RestrictCutUsage
       Prolog.Programming.ExampleConfig
