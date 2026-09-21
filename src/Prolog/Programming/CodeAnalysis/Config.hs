@@ -13,8 +13,8 @@ import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), Rule, Sev
 
 configuredRules :: CodeAnalysisConfig -> [WithSeverity Rule]
 configuredRules CodeAnalysisConfig {..} =
-  ([WithSeverity restrictCutUsageRule Error | restrictCutUsage])
-    ++ maybe [] (singleton . WithSeverity noSingletonVariablesRule) noSingletonVariables
+  ([WithSeverity Error restrictCutUsageRule | restrictCutUsage])
+    ++ maybe [] (singleton . flip WithSeverity noSingletonVariablesRule) noSingletonVariables
 
 defaultCodeAnalysisConfig :: CodeAnalysisConfig
 defaultCodeAnalysisConfig =

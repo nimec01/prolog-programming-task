@@ -53,6 +53,6 @@ data Severity
 
 -- | Container for values with attached severity
 data WithSeverity a = WithSeverity
-  { value :: a,
-    severity :: Severity
+  { severity :: Severity,
+    value :: a
   }

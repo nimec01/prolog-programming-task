@@ -29,7 +29,7 @@ checkForProblems :: CodeAnalysisConfig -> Program -> [WithSeverity Problem]
 checkForProblems cfg =
   concatMap
     ( \c ->
-        concatMap (\WithSeverity {..} -> (`WithSeverity` severity) <$> value c) $
+        concatMap (\WithSeverity {..} -> WithSeverity severity <$> value c) $
           configuredRules cfg
     )
 
