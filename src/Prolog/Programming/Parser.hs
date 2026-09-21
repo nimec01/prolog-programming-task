@@ -47,7 +47,7 @@ configuration ::
       [Spec],
       (String, String)
     )
-configuration = (\(d, st, it, ih, lm, sb, dc, xs) s -> (d, st, it, ih, lm, sb, dc, xs, s)) 
+configuration = (\(d, st, it, ih, lm, sb, dc, xs) s -> (d, st, it, ih, lm, sb, dc, xs, s))
   <$> specification <*> sourceText
 
 specification ::
