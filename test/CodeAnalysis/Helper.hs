@@ -2,7 +2,11 @@ module CodeAnalysis.Helper where
 
 import Language.Prolog (consultString)
 import Prolog.Programming.CodeAnalysis (checkForProblems)
-import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), Problem (problemDisplay), WithSeverity (..))
+import Prolog.Programming.CodeAnalysis.Types
+  ( CodeAnalysisConfig (..),
+    Problem (problemDisplay),
+    WithSeverity (..),
+  )
 import Test.HUnit (assertFailure)
 import Test.Hspec (Expectation)
 
@@ -22,5 +26,6 @@ shouldNotDetectProblems cfg pts code = case consultString code of
   Right prog -> case checkForProblems cfg prog of
     [] -> pure ()
     pbs
-      | any (\t -> any (t . show . problemDisplay . value) pbs) pts -> assertFailure "Detected problem that should not occur"
+      | any (\t -> any (t . show . problemDisplay . value) pbs) pts ->
+          assertFailure "Detected problem that should not occur"
       | otherwise -> pure ()
