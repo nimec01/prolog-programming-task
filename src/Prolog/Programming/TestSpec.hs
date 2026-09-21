@@ -66,6 +66,7 @@ partitionSpecLine =
     combine (RestrictCutUsageSpec s) spec = spec {mRestrictCutUsage = mRestrictCutUsage spec <|> Just s}
     combine (TestSpec s) spec = spec { specifications = specifications spec ++ [s] }
 
+
 data Spec = Spec Visibility Visualize Expection Timeout Requirement
   deriving Show
 
