@@ -4,7 +4,7 @@ module Prolog.Programming.CodeAnalysis.Rules.RestrictCutUsage (restrictCutUsageR
 
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause (..))
-import Prolog.Programming.CodeAnalysis.Helper (termContainsCut)
+import Prolog.Programming.CodeAnalysis.Helper (containsCut)
 import Prolog.Programming.CodeAnalysis.Types (Problem (..), ProblemType (RestrictCutUsage), Rule (..))
 import Text.PrettyPrint.Leijen.Text (hsep, indent, linebreak, string, vsep)
 
@@ -20,7 +20,7 @@ detect clause
   | otherwise = []
 
 cutExistsInClause :: Clause -> Bool
-cutExistsInClause (Clause _ rhs) = any termContainsCut rhs
+cutExistsInClause (Clause _ rhs) = any containsCut rhs
 cutExistsInClause _ = False
 
 toProblem :: Clause -> Problem
