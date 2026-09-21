@@ -1,3 +1,4 @@
+---
 name: HLint
 
 on:
@@ -10,19 +11,21 @@ on:
       - dev
       - main
 
+permissions: read-all
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-    - name: 'Set up HLint'
-      uses: haskell-actions/hlint-setup@v2
-      with:
-        version: '3.5'
+      - name: 'Set up HLint'
+        uses: haskell-actions/hlint-setup@v2
+        with:
+          version: 'latest'
 
-    - name: 'Run HLint'
-      uses: haskell-actions/hlint-run@v2
-      with:
-        path: '["src/", "test/"]'
-        fail-on: suggestion
+      - name: 'Run HLint'
+        uses: haskell-actions/hlint-run@v2
+        with:
+          path: '["src/", "test/"]'
+          fail-on: suggestion

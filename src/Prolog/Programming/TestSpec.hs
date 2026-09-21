@@ -28,7 +28,7 @@ data SpecLine
   | RestrictCutUsageSpec Bool
   | TestSpec Spec
 
-data TaskConfig m = TaskConfig 
+data TaskConfig m = TaskConfig
   { mTimeout :: m TimeoutDuration
   , mStyle :: m TreeStyle
   , mIncTask :: m IncludeTask
