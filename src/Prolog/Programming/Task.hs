@@ -45,7 +45,7 @@ import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
   )
 import Prolog.Programming.Types (
-  TaskConfig(..), Include (..), Spec (..), Requirement (..), IncludeTask, IncludeHidden, 
+  TaskConfig(..), Include (..), Spec (..), Requirement (..), IncludeTask, IncludeHidden,
   Visibility (..), Expection (..), TreeStyle (..)
   )
 

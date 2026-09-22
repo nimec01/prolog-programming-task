@@ -14,7 +14,10 @@ import Data.List                        (isPrefixOf)
 import Language.Prolog                  (terms, term, Term)
 
 import Text.Parsec
-import Prolog.Programming.Types (TaskConfig (..), Spec (..), TreeStyle (..), Include (..), IncludeTask, IncludeHidden, Visibility (..), Visualize (..), Requirement (..), Expection (..), Timeout (..))
+import Prolog.Programming.Types (TaskConfig (..), Spec (..), TreeStyle (..), Include (..),
+  IncludeTask, IncludeHidden, Visibility (..), Visualize (..),
+  Requirement (..), Expection (..), Timeout (..)
+  )
 import Data.Yaml (decodeEither', FromJSON (..), Value (..), withObject, (.:?), (.!=))
 import qualified Data.ByteString.Char8 as BS (pack)
 import qualified Data.Text as T (unpack)
