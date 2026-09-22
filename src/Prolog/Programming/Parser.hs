@@ -110,11 +110,11 @@ parseSpec = try newPredDeclParser <|> specLine
     withTreeFlag = option id $ (char '@' >> return withTree)
                            <|> (char '#' >> return withTreeNegative)
 
-breakWhen :: (a -> Bool) -> [a] -> ([a],[a])
-breakWhen p = (takeWhile (not . p) &&& dropWhile (not . p)) >>> second (drop 1)
-
 defaultOptions :: Requirement -> Spec
 defaultOptions = Spec Visible DontShowTree PositiveResult GlobalTimeout
+
+breakWhen :: (a -> Bool) -> [a] -> ([a],[a])
+breakWhen p = (takeWhile (not . p) &&& dropWhile (not . p)) >>> second (drop 1)
 
 queryWithAnswers :: [Term] -> [[Term]] -> Spec
 queryWithAnswers q as =  defaultOptions $ QueryWithAnswers q as
