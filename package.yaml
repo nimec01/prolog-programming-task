@@ -28,6 +28,7 @@ dependencies:
   - raw-strings-qq
   - text
   - wl-pprint-text
+  - yaml
 
 library:
   source-dirs: src

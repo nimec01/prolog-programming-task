@@ -1,9 +1,15 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Prolog.Programming.TestSpec where
 
 import Data.Void ( Void )
 
 import Language.Prolog (Term (..))
 import Control.Applicative ((<|>))
+import Data.Yaml (FromJSON(..), withObject, (.:?), (.!=), Value (..))
+import Data.Yaml.Parser (typeMismatch)
+import Text.Parsec (parse)
+import Prolog.Programming.Parser (parseSpec)
 
 type TimeoutDuration = Int
 
@@ -34,6 +40,39 @@ data FTaskConfig m = TaskConfig
   , mSWISHButton :: m ShowSWISHButton
   , specifications :: [Spec]
   }
+
+
+instance FromJSON TreeStyle where
+  parseJSON (String "query") = pure QueryStyle
+  parseJSON (String "resolution") = pure ResolutionStyle
+  parseJSON _ = fail "Invalid value"
+
+instance FromJSON IncludeTask where
+  parseJSON (String "yes") = pure Yes
+  parseJSON (String "filtered") = pure Filtered
+  parseJSON (String "no") = pure $ No ()
+  parseJSON _ = fail "Invalid value"
+
+instance FromJSON IncludeHidden where
+  parseJSON (String "yes") = pure Yes
+  parseJSON (String "filtered") = pure Filtered
+  parseJSON _ = fail "Invalid value"
+
+instance FromJSON Spec where
+  parseJSON (String v) = case parse parseSpec "(spec)" v of
+    Left err -> fail $ show err
+    Right s -> pure s
+  parseJSON _ = fail "Invalid value type"
+
+instance FromJSON (FTaskConfig Maybe) where
+  parseJSON = withObject "TaskConfig" $ \v -> TaskConfig
+    <$> v .:? "globalTimeout"
+    <*> v .:? "treeStyle"
+    <*> v .:? "includeHiddenDefinitions"
+    <*> v .:? "includeTaskDefinitions"
+    <*> v .:? "allowListPatternMatching"
+    <*> v .:? "showSWISHButton"
+    <*> v .:? "specifications" .!= []
 
 partitionSpecLine :: [SpecLine] -> FTaskConfig Maybe
 partitionSpecLine = foldl (flip combine) (TaskConfig Nothing Nothing Nothing Nothing Nothing Nothing [])
