@@ -21,7 +21,6 @@ import Prolog.Programming.ExampleConfig
 import Prolog.Programming.Helper        (termHead, Arity)
 import Prolog.Programming.Parser
 import Prolog.Programming.TestRunner
-import Prolog.Programming.TestSpec
 
 import Control.Monad                    (when)
 import Control.Monad.Random.Class       (MonadRandom)
@@ -46,6 +45,7 @@ import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
   )
 import Data.Functor.Identity (Identity(..))
+import Prolog.Programming.Types (FTaskConfig(..), Include (..), Spec (..), Requirement (..), IncludeTask, IncludeHidden, Visibility (..), Expection (..), TreeStyle (..))
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
