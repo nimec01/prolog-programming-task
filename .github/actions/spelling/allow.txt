@@ -1,5 +1,7 @@
 arity
 Autotool
+Bifunctor
+bimap
 Concat
 dcg
 foldl
