@@ -25,7 +25,7 @@ data SpecLine
   | ShowsSWISHButtonSpec ShowSWISHButton
   | TestSpec Spec
 
-data TaskConfig m = TaskConfig
+data FTaskConfig m = TaskConfig
   { mTimeout :: m TimeoutDuration
   , mStyle :: m TreeStyle
   , mIncTask :: m IncludeTask
@@ -35,7 +35,7 @@ data TaskConfig m = TaskConfig
   , specifications :: [Spec]
   }
 
-partitionSpecLine :: [SpecLine] -> TaskConfig Maybe
+partitionSpecLine :: [SpecLine] -> FTaskConfig Maybe
 partitionSpecLine = foldl (flip combine) (TaskConfig Nothing Nothing Nothing Nothing Nothing Nothing [])
   where
     combine (TimeoutSpec s) spec = spec { mTimeout = mTimeout spec <|> Just s }
