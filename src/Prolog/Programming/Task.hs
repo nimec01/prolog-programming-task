@@ -44,14 +44,13 @@ import Text.Parsec (ParseError)
 import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
   )
-import Data.Functor.Identity (Identity(..))
-import Prolog.Programming.Types (FTaskConfig(..), Include (..), Spec (..), Requirement (..), IncludeTask, IncludeHidden, Visibility (..), Expection (..), TreeStyle (..))
+import Prolog.Programming.Types (TaskConfig(..), Include (..), Spec (..), Requirement (..), IncludeTask, IncludeHidden, Visibility (..), Expection (..), TreeStyle (..))
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
   case parseConfig cfg of
     Left err -> fail $ show err
-    Right (TaskConfig _ _ _ (Identity Yes) _  (Identity True) _, (_,hiddenFacts)) -> case consultString hiddenFacts of
+    Right (TaskConfig _ _ _ Yes _  True _, (_,hiddenFacts)) -> case consultString hiddenFacts of
         Left err -> fail $ show err
         Right (_:_) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
         _ -> pure ()
@@ -89,13 +88,13 @@ taskDefinitionsIncluded :: Config -> Bool
 taskDefinitionsIncluded (Config cfg) =
   case parseConfig cfg of
     Left _         -> False
-    Right (TaskConfig {..}, _) -> case runIdentity mIncTask of
+    Right (TaskConfig {..}, _) -> case mIncTask of
       Yes      -> True
       Filtered -> True
       No ()     -> False
 
 showSWISHButton :: Config -> Bool
-showSWISHButton (Config cfg) = runIdentity $ mSWISHButton
+showSWISHButton (Config cfg) = mSWISHButton
   where
     (TaskConfig{..},_) = parseConfig cfg `orError` "config should have been validated earlier"
 
@@ -113,11 +112,11 @@ checkTask
 checkTask reject inform drawPicture (Config cfg) (Code input) = do
   let (TaskConfig{..},(visible_facts,hidden_facts))
         = parseConfig cfg `orError` "config should have been validated earlier"
-      globalTO = runIdentity mTimeout
-      treeStyle = runIdentity mStyle
-      allowListMatching = runIdentity mListMatch
-      includeTask = runIdentity mIncTask
-      includeHidden = runIdentity mIncHidden
+      globalTO = mTimeout
+      treeStyle = mStyle
+      allowListMatching = mListMatch
+      includeTask = mIncTask
+      includeHidden = mIncHidden
       drawTree tree = do
         svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
         drawPicture svg

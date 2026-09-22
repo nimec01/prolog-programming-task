@@ -12,13 +12,11 @@ import Control.Monad                    (void)
 import Control.Arrow                    ((>>>), (&&&))
 
 import Data.List                        (isPrefixOf)
-import Data.Maybe                       (fromMaybe)
 
 import Language.Prolog                  (terms, term)
 
 import Text.Parsec
-import Data.Functor.Identity (Identity (..))
-import Prolog.Programming.Types (FTaskConfig (..), Spec, TreeStyle (..), Include (..), IncludeTask, IncludeHidden)
+import Prolog.Programming.Types (TaskConfig (..), Spec, TreeStyle (..), Include (..), IncludeTask, IncludeHidden)
 import Prolog.Programming.Helper (queryWithAnswers, statementToCheck, newPredDecl, localTimeout, negative, hidden, withTree, withTreeNegative)
 import Data.Yaml (decodeEither', FromJSON (..), Value (..), withObject, (.:?), (.!=))
 import qualified Data.ByteString.Char8 as BS (pack)
@@ -47,25 +45,25 @@ instance FromJSON Spec where
     Right s -> pure s
   parseJSON _ = fail "Invalid value type"
 
-instance FromJSON (FTaskConfig Maybe) where
+instance FromJSON TaskConfig where
   parseJSON = withObject "TaskConfig" $ \v -> TaskConfig
-    <$> v .:? "globalTimeout"
-    <*> v .:? "treeStyle"
-    <*> v .:? "includeHiddenDefinitions"
-    <*> v .:? "includeTaskDefinitions"
-    <*> v .:? "allowListPatternMatching"
-    <*> v .:? "showSWISHButton"
+    <$> v .:? "globalTimeout" .!= 10000
+    <*> v .:? "treeStyle" .!= QueryStyle
+    <*> v .:? "includeHiddenDefinitions" .!= Yes
+    <*> v .:? "includeTaskDefinitions" .!= Yes
+    <*> v .:? "allowListPatternMatching" .!= True
+    <*> v .:? "showSWISHButton" .!= False
     <*> v .:? "specifications" .!= []
 
 
-parseConfig :: String -> Either ParseError (FTaskConfig Identity, (String, String))
+parseConfig :: String -> Either ParseError (TaskConfig, (String, String))
 parseConfig = parse configuration "(config)"
 
 configuration ::
   Parsec
     String
     ()
-    ( FTaskConfig Identity,
+    ( TaskConfig,
       (String, String)
     )
 configuration = do
@@ -73,18 +71,9 @@ configuration = do
   let (rawCfg, rest) = first unlines $ breakWhen ("---" `isPrefixOf`) ls
   case decodeEither' (BS.pack rawCfg) of
     Left err -> fail $ show err
-    Right TaskConfig{..} -> do
+    Right taskCfg -> do
       let preds = bimap unlines unlines $ breakWhen ("---" `isPrefixOf`) rest
-      let finalCfg = TaskConfig
-            { mTimeout = Identity $ fromMaybe 10000 mTimeout
-            , mStyle = Identity $ fromMaybe QueryStyle mStyle
-            , mIncTask = Identity $ fromMaybe Yes mIncTask
-            , mIncHidden = Identity $ fromMaybe Yes mIncHidden
-            , mListMatch = Identity $ fromMaybe True mListMatch
-            , mSWISHButton = Identity $ fromMaybe False mSWISHButton
-            , specifications
-            }
-      pure (finalCfg,preds)
+      pure (taskCfg,preds)
 
 
 parseSpec :: Parsec String () Spec
