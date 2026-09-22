@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns #-}
 module Prolog.Programming.Parser (
   parseConfig,
   ) where
@@ -14,18 +15,13 @@ import Data.Maybe                       (catMaybes, fromMaybe)
 import Language.Prolog                  (terms, term)
 
 import Text.Parsec
+import Data.Functor.Identity (Identity (..))
 
 parseConfig ::
   String ->
   Either
     ParseError
-    ( TimeoutDuration,
-      TreeStyle,
-      IncludeTask,
-      IncludeHidden,
-      AllowListMatching,
-      ShowSWISHButton,
-      [Spec],
+    ( FTaskConfig Identity,
       (String, String)
     )
 parseConfig = parse configuration "(config)"
@@ -34,29 +30,16 @@ configuration ::
   Parsec
     String
     ()
-    ( TimeoutDuration,
-      TreeStyle,
-      IncludeTask,
-      IncludeHidden,
-      AllowListMatching,
-      ShowSWISHButton,
-      [Spec],
+    ( FTaskConfig Identity,
       (String, String)
     )
-configuration = (\(d,st,it,ih,lm,sb,xs) s -> (d,st,it,ih,lm,sb,xs,s)) <$> specification <*> sourceText
+configuration = (,) <$> specification <*> sourceText
 
 specification ::
   Parsec
     String
     ()
-    ( TimeoutDuration,
-      TreeStyle,
-      IncludeTask,
-      IncludeHidden,
-      AllowListMatching,
-      ShowSWISHButton,
-      [Spec]
-    )
+    (FTaskConfig Identity)
 specification = do
   lines' <- commentBlock
   timeoutStyleAndSpecs <- zip [1 :: Integer ..] lines' `forM` \t ->
@@ -64,15 +47,15 @@ specification = do
       Right spec -> return spec
       Left err   -> fail (show err)
   let TaskConfig {..} = partitionSpecLine $ catMaybes timeoutStyleAndSpecs
-  pure
-    ( fromMaybe 10000 mTimeout,
-      fromMaybe QueryStyle mStyle,
-      fromMaybe Yes mIncTask,
-      fromMaybe Yes mIncHidden,
-      fromMaybe True mListMatch,
-      fromMaybe False mSWISHButton,
-      specifications
-    )
+  pure $ TaskConfig
+    { mTimeout = Identity $ fromMaybe 10000 mTimeout
+    , mStyle = Identity $ fromMaybe QueryStyle mStyle
+    , mIncTask = Identity $ fromMaybe Yes mIncTask
+    , mIncHidden = Identity $ fromMaybe Yes mIncHidden
+    , mListMatch = Identity $ fromMaybe True mListMatch
+    , mSWISHButton = Identity $ fromMaybe False mSWISHButton
+    , specifications
+    }
   where
     parseSpecLine :: (Integer, String) -> Either ParseError (Maybe SpecLine)
     parseSpecLine (i, s) = parse (

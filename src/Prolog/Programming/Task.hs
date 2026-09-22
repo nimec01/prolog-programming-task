@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE RecordWildCards #-}
 module Prolog.Programming.Task (
   checkTask,
   exampleConfig,
@@ -44,12 +45,13 @@ import Text.Parsec (ParseError)
 import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
   )
+import Data.Functor.Identity (Identity(..))
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
   case parseConfig cfg of
     Left err -> fail $ show err
-    Right (_,_,_,Yes,_, True, _, (_,hiddenFacts)) -> case consultString hiddenFacts of
+    Right (TaskConfig _ _ _ (Identity Yes) _  (Identity True) _, (_,hiddenFacts)) -> case consultString hiddenFacts of
         Left err -> fail $ show err
         Right (_:_) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
         _ -> pure ()
@@ -58,7 +60,7 @@ verifyConfig (Config cfg) =
 describeTask :: Config -> Doc
 describeTask (Config cfg) = text . pack $ either
   (const "Error in task configuration!")
-  (\(_,_,_,_,_,_,_,(visible_facts,_)) -> visible_facts)
+  (\(TaskConfig{},(visible_facts,_)) -> visible_facts)
   (parseConfig cfg)
 
 initialTask :: Config -> Code
@@ -70,8 +72,8 @@ initialTask (Config cfg) = Code $
       "% Any additional definitions can go below this line"
       newDecls
   where
-    (_,_,_,_,_,_,specs,_) = parseConfig cfg `orError` "config should have been validated earlier"
-    newDecls = mapMaybe (\(Spec _ _ _ _ r) -> newPredDesc r) specs
+    (TaskConfig{..},_) = parseConfig cfg `orError` "config should have been validated earlier"
+    newDecls = mapMaybe (\(Spec _ _ _ _ r) -> newPredDesc r) specifications
     newPredDesc (NewPredDecl _ desc) = Just desc
     newPredDesc StatementToCheck{} = Nothing
     newPredDesc QueryWithAnswers{} = Nothing
@@ -80,22 +82,22 @@ taskDefinitions :: Config -> Either ParseError [Clause]
 taskDefinitions (Config cfg) =
   case parseConfig cfg of
     Left err       -> Left err
-    Right (_, _, _, _, _, _, _, (visibleFacts, _)) ->
+    Right (TaskConfig{}, (visibleFacts, _)) ->
       consultString visibleFacts
 
 taskDefinitionsIncluded :: Config -> Bool
 taskDefinitionsIncluded (Config cfg) =
   case parseConfig cfg of
     Left _         -> False
-    Right (_, _, incTask, _, _, _, _, _) -> case incTask of
+    Right (TaskConfig {..}, _) -> case runIdentity mIncTask of
       Yes      -> True
       Filtered -> True
       No ()     -> False
 
 showSWISHButton :: Config -> Bool
-showSWISHButton (Config cfg) = showButtonCfg
+showSWISHButton (Config cfg) = runIdentity $ mSWISHButton
   where
-    (_,_,_,_,_,showButtonCfg,_,_) = parseConfig cfg `orError` "config should have been validated earlier"
+    (TaskConfig{..},_) = parseConfig cfg `orError` "config should have been validated earlier"
 
 orError :: Either a b -> String -> b
 orError x str = fromRight (error str) x
@@ -109,8 +111,13 @@ checkTask
   -> Code
   -> m ()
 checkTask reject inform drawPicture (Config cfg) (Code input) = do
-  let (globalTO,treeStyle,includeTask,includeHidden,allowListMatching,_,specs,(visible_facts,hidden_facts))
+  let (TaskConfig{..},(visible_facts,hidden_facts))
         = parseConfig cfg `orError` "config should have been validated earlier"
+      globalTO = runIdentity mTimeout
+      treeStyle = runIdentity mStyle
+      allowListMatching = runIdentity mListMatch
+      includeTask = runIdentity mIncTask
+      includeHidden = runIdentity mIncHidden
       drawTree tree = do
         svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
         drawPicture svg
@@ -124,7 +131,7 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
           Nothing -> pure ()
           Just t -> reject . text . pack $ "forbidden use of head/tail-list-matching in " ++ show t
 
-      newDefs <- case findNewPredicateDefs specs inProg of
+      newDefs <- case findNewPredicateDefs specifications inProg of
         (matchReport, Nothing) -> do
           let
             errMsg =
@@ -133,7 +140,7 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
               <$$> matchReport
           [] <$ reject errMsg
         (matchReport, Just newDefs) -> do
-          when (requiresNewPredicates specs) $
+          when (requiresNewPredicates specifications) $
             inform $
               text "Using the following definitions for required predicates:"
               <$$> matchReport
@@ -147,7 +154,7 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
        of
         Left err -> reject . text . pack $ show err
         Right factProg -> do
-          testResult <- liftIO $ testRunner globalTO factProg inProg specs newDefs
+          testResult <- liftIO $ testRunner globalTO factProg inProg specifications newDefs
           case testResult of
             (Finished AllOk,(passed,_)) ->
               inform $ vcat
