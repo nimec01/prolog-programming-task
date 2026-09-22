@@ -113,7 +113,6 @@ parseSpec = try newPredDeclParser <|> specLine
 breakWhen :: (a -> Bool) -> [a] -> ([a],[a])
 breakWhen p = (takeWhile (not . p) &&& dropWhile (not . p)) >>> second (drop 1)
 
-
 defaultOptions :: Requirement -> Spec
 defaultOptions = Spec Visible DontShowTree PositiveResult GlobalTimeout
 
