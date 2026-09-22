@@ -44,7 +44,10 @@ import Text.Parsec (ParseError)
 import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
   )
-import Prolog.Programming.Types (TaskConfig(..), Include (..), Spec (..), Requirement (..), IncludeTask, IncludeHidden, Visibility (..), Expection (..), TreeStyle (..))
+import Prolog.Programming.Types (
+  TaskConfig(..), Include (..), Spec (..), Requirement (..), IncludeTask, IncludeHidden, 
+  Visibility (..), Expection (..), TreeStyle (..)
+  )
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
