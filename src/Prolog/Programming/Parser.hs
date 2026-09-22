@@ -69,8 +69,8 @@ configuration = do
   case decodeEither' (BS.pack rawCfg) of
     Left err -> fail $ show err
     Right taskCfg -> do
-      let preds = bimap unlines unlines $ breakWhen ("---" `isPrefixOf`) rest
-      pure (taskCfg,preds)
+      let predicates = bimap unlines unlines $ breakWhen ("---" `isPrefixOf`) rest
+      pure (taskCfg,predicates)
 
 
 parseSpec :: Parsec String () Spec
