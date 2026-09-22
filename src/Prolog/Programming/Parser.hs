@@ -13,11 +13,10 @@ import Control.Arrow                    ((>>>), (&&&))
 
 import Data.List                        (isPrefixOf)
 
-import Language.Prolog                  (terms, term)
+import Language.Prolog                  (terms, term, Term)
 
 import Text.Parsec
-import Prolog.Programming.Types (TaskConfig (..), Spec, TreeStyle (..), Include (..), IncludeTask, IncludeHidden)
-import Prolog.Programming.Helper (queryWithAnswers, statementToCheck, newPredDecl, localTimeout, negative, hidden, withTree, withTreeNegative)
+import Prolog.Programming.Types (TaskConfig (..), Spec (..), TreeStyle (..), Include (..), IncludeTask, IncludeHidden, Visibility (..), Visualize (..), Requirement (..), Expection (..), Timeout (..))
 import Data.Yaml (decodeEither', FromJSON (..), Value (..), withObject, (.:?), (.!=))
 import qualified Data.ByteString.Char8 as BS (pack)
 import qualified Data.Text as T (unpack)
@@ -115,3 +114,31 @@ parseSpec = try newPredDeclParser <|> specLine
 
 breakWhen :: (a -> Bool) -> [a] -> ([a],[a])
 breakWhen p = (takeWhile (not . p) &&& dropWhile (not . p)) >>> second (drop 1)
+
+
+defaultOptions :: Requirement -> Spec
+defaultOptions = Spec Visible DontShowTree PositiveResult GlobalTimeout
+
+queryWithAnswers :: [Term] -> [[Term]] -> Spec
+queryWithAnswers q as =  defaultOptions $ QueryWithAnswers q as
+
+statementToCheck :: [Term] -> Spec
+statementToCheck ts = defaultOptions $ StatementToCheck ts
+
+hidden :: String -> Spec -> Spec
+hidden s (Spec _ t e to r) = Spec (Hidden s) t e to r
+
+withTree :: Spec -> Spec
+withTree (Spec v _ e to r) = Spec v ShowTree e to r
+
+withTreeNegative :: Spec -> Spec
+withTreeNegative = negative . withTree
+
+newPredDecl :: Term -> String -> Spec
+newPredDecl t s = defaultOptions $ NewPredDecl t s
+
+negative :: Spec -> Spec
+negative (Spec v t _ to r) = Spec v t NegativeResult to r
+
+localTimeout :: Int -> Spec -> Spec
+localTimeout d (Spec v t e _ r) = Spec v t e (LocalTimeout d) r
