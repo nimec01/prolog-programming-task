@@ -2,6 +2,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 module Prolog.Programming.Parser (
   parseConfig,
+  parseSpec
   ) where
 
 import Prolog.Programming.TestSpec
@@ -66,30 +67,9 @@ specification = do
                         <|> IncludeTaskSpec <$> try includeTask
                         <|> ListMatchSpec <$> try allowListMatching
                         <|> ShowsSWISHButtonSpec <$> try showSWISHButton
-                        <|> TestSpec <$> (try newPredDeclParser <|> specLine)))
+                        <|> TestSpec <$> parseSpec))
         ) <* eof)
         ("Specification line " ++ show i) s
-
-    specLine = ((\f g h i -> f . g . h . i)
-                  <$> localTimeoutAnn
-                  <*> negativeFlag
-                  <*> withTreeFlag
-                  <*> hiddenFlag) <*> do
-        spaces
-        q <- terms
-        (do char ':' >> optional (char ' ')
-            queryWithAnswers q . map (:[]) <$> terms)
-         <|> pure (statementToCheck q)
-
-    newPredDeclParser = do
-        void $ string "new"
-        spaces
-        t <- term
-        spaces
-        void $ char ':'
-        spaces
-        desc <- many1 anyChar
-        pure $ newPredDecl t desc
 
     includeHidden = do
       void $ string "Include hidden definitions:"
@@ -121,6 +101,30 @@ specification = do
       spaces
       True <$ string "yes" <|> False <$ string "no"
 
+parseSpec :: Parsec String () Spec
+parseSpec = try newPredDeclParser <|> specLine
+  where
+    specLine = ((\f g h i -> f . g . h . i)
+                  <$> localTimeoutAnn
+                  <*> negativeFlag
+                  <*> withTreeFlag
+                  <*> hiddenFlag) <*> do
+        spaces
+        q <- terms
+        (do char ':' >> optional (char ' ')
+            queryWithAnswers q . map (:[]) <$> terms)
+         <|> pure (statementToCheck q)
+
+    newPredDeclParser = do
+        void $ string "new"
+        spaces
+        t <- term
+        spaces
+        void $ char ':'
+        spaces
+        desc <- many1 anyChar
+        pure $ newPredDecl t desc
+    
     localTimeoutAnn = option id $
       localTimeout . read
       <$> between (char '[') (char ']') (many1 digit) <* spaces
@@ -133,6 +137,7 @@ specification = do
 
     withTreeFlag = option id $ (char '@' >> return withTree)
                            <|> (char '#' >> return withTreeNegative)
+
 
 commentLine :: Parsec String u String
 commentLine = spaces >> char '%' >> many anyChar
