@@ -11,7 +11,8 @@ caConfig :: CodeAnalysisConfig
 caConfig =
   CodeAnalysisConfig
     { singletonVariablesSeverity = Nothing,
-      allowCutUsage = False
+      allowCutUsage = False,
+      additionalCutUsageMessage = Nothing
     }
 
 detect :: String -> Bool
@@ -33,3 +34,9 @@ spec = describe "Cuts" $ do
 
   it "detects problem on example 4" $
     detectsProblem "p(X) :- a(X), (b(X), ! ; c(X))."
+
+  it "detect problem with additional message" $
+    shouldDetectProblemsStrict
+      (caConfig {additionalCutUsageMessage = Just "We have not introduced this operator yet."})
+      [isInfixOf "We have not introduced this operator yet."]
+      "p(X) :- q(X), !."

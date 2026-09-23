@@ -13,12 +13,13 @@ import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), Rule, Sev
 
 configuredRules :: CodeAnalysisConfig -> [WithSeverity Rule]
 configuredRules CodeAnalysisConfig {..} =
-  ([WithSeverity Error cutsRule | not allowCutUsage])
+  ([WithSeverity Error (cutsRule additionalCutUsageMessage) | not allowCutUsage])
     ++ maybe [] (singleton . flip WithSeverity singletonVariablesRule) singletonVariablesSeverity
 
 defaultCodeAnalysisConfig :: CodeAnalysisConfig
 defaultCodeAnalysisConfig =
   CodeAnalysisConfig
     { singletonVariablesSeverity = Just Warn,
-      allowCutUsage = False
+      allowCutUsage = False,
+      additionalCutUsageMessage = Nothing
     }

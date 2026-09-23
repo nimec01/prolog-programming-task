@@ -28,7 +28,9 @@ data CodeAnalysisConfig = CodeAnalysisConfig
     -- `Nothing` results in no singleton variables being reported.
     singletonVariablesSeverity :: Maybe Severity,
     -- | Whether cuts are allowed to be used or not
-    allowCutUsage :: Bool
+    allowCutUsage :: Bool,
+    -- | Optional message to show additionally next default explanation
+    additionalCutUsageMessage :: Maybe String
   }
 
 -- | Classification for seriousness of violation

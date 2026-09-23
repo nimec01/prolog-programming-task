@@ -8,11 +8,11 @@ import Data.Generics (everything, mkQ)
 import Data.Text.Lazy (pack)
 import Language.Prolog (Clause (..), Term (..))
 import Prolog.Programming.CodeAnalysis.Types (Problem (..), Rule)
-import Text.PrettyPrint.Leijen.Text (hsep, indent, linebreak, string, vsep)
+import Text.PrettyPrint.Leijen.Text (empty, indent, linebreak, string, vsep)
 
-cutsRule :: Rule
-cutsRule clause
-  | cutExistsInClause clause = [toProblem clause]
+cutsRule :: Maybe String -> Rule
+cutsRule cMsg clause
+  | cutExistsInClause clause = [toProblem cMsg clause]
   | otherwise = []
 
 cutExistsInClause :: Clause -> Bool
@@ -24,8 +24,8 @@ containsCut = everything (||) $ mkQ False $ \case
   Cut _ -> True
   _ -> False
 
-toProblem :: Clause -> Problem
-toProblem clause =
+toProblem :: Maybe String -> Clause -> Problem
+toProblem cMsg clause =
   Problem
     { problemClause = clause,
       problemDisplay =
@@ -33,9 +33,6 @@ toProblem clause =
           [ string "Your clause",
             indent 2 $ string $ pack $ show clause,
             string "makes use of the cut (!) operator." <> linebreak,
-            hsep
-              [ string "We have not introduced this operator yet.",
-                string "Find a solution without it."
-              ]
+            maybe empty (string . pack) cMsg
           ]
     }
