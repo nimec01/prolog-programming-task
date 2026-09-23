@@ -27,6 +27,7 @@ treeStyle: query
 # allow/disallow the use of [H|T] matching on list values, defaults to 'yes' (true) (experimental: might not recognize all instances of the pattern)
 # allowListPatternMatching: true
 
+# enable/disable display of button that allows students to transfer code to SWISH. Disabled by default.
 # showSWISHButton: false
 
 # prefixing a test with [<time out in ms>] sets a local timeout for that test
