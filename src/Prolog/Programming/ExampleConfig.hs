@@ -8,7 +8,9 @@ import qualified Text.RawString.QQ as RS (r)
 exampleConfig :: Config
 exampleConfig = Config
   [RS.r|
-# timeout per test in ms (defaults to 10000, only the first timeout is used)
+# uses the last provided values if fields are provided multiple times
+
+# timeout per test in ms (defaults to 10000)
 globalTimeout: 1000
 
 # style of derivation tree rendering can be either 'query' or 'resolution' (defaults to 'query')
@@ -19,7 +21,7 @@ treeStyle: query
 # 'filtered':
 #    - For hidden definitions all clauses for predicate pred/k are filtered out if the input program also contains clauses for pred/k,
 #    - For task definitions clauses that occur identically in the input program are filtered out
-# 'no': do not include.
+# 'no': do not include (only available for includeTaskDefinitions).
 # Both default to yes
 # includeTaskDefinitions: yes
 # includeHiddenDefinitions: yes
