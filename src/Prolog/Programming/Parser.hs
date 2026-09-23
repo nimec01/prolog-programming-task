@@ -126,10 +126,10 @@ statementToCheck :: [Term] -> Spec
 statementToCheck ts = defaultOptions $ StatementToCheck ts
 
 hidden :: String -> Spec -> Spec
-hidden s (Spec _ t e to r) = Spec (Hidden s) t e to r
+hidden s spec = spec { specVisibility = Hidden s }
 
 withTree :: Spec -> Spec
-withTree (Spec v _ e to r) = Spec v ShowTree e to r
+withTree spec = spec { specVisualize = ShowTree}
 
 withTreeNegative :: Spec -> Spec
 withTreeNegative = negative . withTree
@@ -138,7 +138,7 @@ newPredDecl :: Term -> String -> Spec
 newPredDecl t s = defaultOptions $ NewPredDecl t s
 
 negative :: Spec -> Spec
-negative (Spec v t _ to r) = Spec v t NegativeResult to r
+negative spec = spec { specExpection = NegativeResult}
 
 localTimeout :: Int -> Spec -> Spec
-localTimeout d (Spec v t e _ r) = Spec v t e (LocalTimeout d) r
+localTimeout d spec = spec {specTimeout = LocalTimeout d}

@@ -27,7 +27,13 @@ data TaskConfig = TaskConfig
     specifications :: [Spec]
   }
 
-data Spec = Spec Visibility Visualize Expection Timeout Requirement
+data Spec = Spec
+  { specVisibility :: Visibility,
+    specVisualize :: Visualize,
+    specExpection :: Expection,
+    specTimeout :: Timeout,
+    specRequirement :: Requirement
+  }
   deriving (Show)
 
 data Visibility = Hidden String | Visible
