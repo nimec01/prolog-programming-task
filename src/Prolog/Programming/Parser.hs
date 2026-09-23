@@ -108,10 +108,17 @@ parseSpec = try newPredDeclParser <|> specLine
 
     hiddenFlag   = option id $
       char '!' >> hidden
-      <$> option "" (try (between (char '(') (char ')') (many $ noneOf ")")))
+      <$> option "" (try (between (char '(') (char ')') description))
 
     withTreeFlag = option id $ (char '@' >> return withTree)
                            <|> (char '#' >> return withTreeNegative)
+
+    description = try (between (char '"') (char '"') (descriptionMsg "\""))
+      <|> try (between (char '\'') (char '\'') (descriptionMsg "'"))
+      <|> descriptionMsg ")"
+
+    descriptionMsg :: String -> Parsec String () String
+    descriptionMsg end = many (noneOf end)
 
 defaultOptions :: Requirement -> Spec
 defaultOptions = Spec Visible DontShowTree PositiveResult GlobalTimeout
