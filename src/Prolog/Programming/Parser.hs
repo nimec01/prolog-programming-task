@@ -57,7 +57,7 @@ instance FromJSON TaskConfig where
 
 
 parseConfig :: String -> Either ParseError (TaskConfig, (String, String))
-parseConfig = parse configuration "(config)"
+parseConfig = parse (configuration <* eof) "(config)"
 
 configuration ::
   Parsec
