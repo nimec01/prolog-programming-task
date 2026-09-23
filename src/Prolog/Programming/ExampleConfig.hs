@@ -39,7 +39,7 @@ treeStyle: query
 #     allow: true
 #     # severity to use when reporting, defaults to 'hint'
 #     severity: hint
-#   cutUsage: 
+#   cutUsage:
 #     # whether to allow usage of the cut operator or not, defaults to 'true'
 #     allow: true
 #     # severity to use when reporting, defaults to 'error'
