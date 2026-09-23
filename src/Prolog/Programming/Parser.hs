@@ -49,8 +49,8 @@ instance FromJSON TaskConfig where
   parseJSON = withObject "TaskConfig" $ \v -> TaskConfig
     <$> v .:? "globalTimeout" .!= 10000
     <*> v .:? "treeStyle" .!= QueryStyle
-    <*> v .:? "includeHiddenDefinitions" .!= Yes
     <*> v .:? "includeTaskDefinitions" .!= Yes
+    <*> v .:? "includeHiddenDefinitions" .!= Yes
     <*> v .:? "allowListPatternMatching" .!= True
     <*> v .:? "showSWISHButton" .!= False
     <*> v .:? "specifications" .!= []
