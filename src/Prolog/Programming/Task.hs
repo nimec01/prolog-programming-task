@@ -91,13 +91,13 @@ taskDefinitionsIncluded :: Config -> Bool
 taskDefinitionsIncluded (Config cfg) =
   case parseConfig cfg of
     Left _         -> False
-    Right (TaskConfig {..}, _) -> case mIncTask of
+    Right (TaskConfig {..}, _) -> case incTask of
       Yes      -> True
       Filtered -> True
       No ()     -> False
 
 showSWISHButton :: Config -> Bool
-showSWISHButton (Config cfg) = mSWISHButton
+showSWISHButton (Config cfg) = displaySWISHButton
   where
     (TaskConfig{..},_) = parseConfig cfg `orError` "config should have been validated earlier"
 
@@ -115,20 +115,15 @@ checkTask
 checkTask reject inform drawPicture (Config cfg) (Code input) = do
   let (TaskConfig{..},(visible_facts,hidden_facts))
         = parseConfig cfg `orError` "config should have been validated earlier"
-      globalTO = mTimeout
-      treeStyle = mStyle
-      allowListMatching = mListMatch
-      includeTask = mIncTask
-      includeHidden = mIncHidden
       drawTree tree = do
-        svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
+        svg <- liftIO $ asInlineSvgWith (grabFormatting style) tree
         drawPicture svg
 
   case consultString input of
     Left err -> reject . text . pack $ show err
     Right inProg -> do
 
-      when (not allowListMatching) $
+      when (not listMatch) $
         case containsHeadTailPattern inProg of
           Nothing -> pure ()
           Just t -> reject . text . pack $ "forbidden use of head/tail-list-matching in " ++ show t
@@ -150,13 +145,13 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
 
       case consultStringsAndFilter
         visible_facts
-        (taskFilter includeTask inProg)
+        (taskFilter incTask inProg)
         hidden_facts
-        (hiddenFilter includeHidden inProg)
+        (hiddenFilter incHidden inProg)
        of
         Left err -> reject . text . pack $ show err
         Right factProg -> do
-          testResult <- liftIO $ testRunner globalTO factProg inProg specifications newDefs
+          testResult <- liftIO $ testRunner timeout factProg inProg specifications newDefs
           case testResult of
             (Finished AllOk,(passed,_)) ->
               inform $ vcat
