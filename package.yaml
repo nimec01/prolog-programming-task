@@ -29,6 +29,7 @@ dependencies:
   - text
   - wl-pprint-text
   - syb >= 0.3
+  - yaml
 
 library:
   source-dirs: src

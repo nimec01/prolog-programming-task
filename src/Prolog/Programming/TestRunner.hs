@@ -7,7 +7,6 @@ module Prolog.Programming.TestRunner (
   ) where
 
 import Prolog.Programming.Helper        (termHead)
-import Prolog.Programming.TestSpec
 
 import Control.Exception                (evaluate)
 import Control.Monad.Random.Class       (MonadRandom)
@@ -22,6 +21,9 @@ import Language.Prolog.GraphViz         (Graph, resolveFirstTree, resolveTree)
 
 import System.Random.Shuffle            (shuffleM)
 import System.Timeout                   (timeout)
+import Prolog.Programming.Types (TimeoutDuration, Spec (..), Timeout (..), Requirement (..),
+  Expection (..), Visualize (..), Visibility (..)
+  )
 
 testRunner :: TimeoutDuration
   -> Program
