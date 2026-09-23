@@ -1,92 +1,84 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Prolog.Programming.Parser (
   parseConfig,
+  parseSpec
   ) where
 
-import Prolog.Programming.TestSpec
-
-import Control.Monad                    (forM, void)
-import Control.Arrow                    ((>>>), (&&&), second)
+import Control.Monad                    (void)
+import Control.Arrow                    ((>>>), (&&&))
 
 import Data.List                        (isPrefixOf)
-import Data.Maybe                       (catMaybes, fromMaybe)
 
-import Language.Prolog                  (terms, term)
+import Language.Prolog                  (terms, term, Term)
 
 import Text.Parsec
+import Prolog.Programming.Types (TaskConfig (..), Spec (..), TreeStyle (..), Include (..),
+  IncludeTask, IncludeHidden, Visibility (..), Visualize (..),
+  Requirement (..), Expection (..), Timeout (..)
+  )
+import Data.Yaml (decodeEither', FromJSON (..), Value (..), withObject, (.:?), (.!=))
+import qualified Data.ByteString.Char8 as BS (pack)
+import qualified Data.Text as T (unpack)
+import Data.Bifunctor (Bifunctor(..))
 
-parseConfig ::
-  String ->
-  Either
-    ParseError
-    ( TimeoutDuration,
-      TreeStyle,
-      IncludeTask,
-      IncludeHidden,
-      AllowListMatching,
-      ShowSWISHButton,
-      [Spec],
-      (String, String)
-    )
-parseConfig = parse configuration "(config)"
+instance FromJSON TreeStyle where
+  parseJSON (String "query") = pure QueryStyle
+  parseJSON (String "resolution") = pure ResolutionStyle
+  parseJSON _ = fail "Invalid value"
+
+instance FromJSON IncludeTask where
+  parseJSON (String "yes") = pure Yes
+  parseJSON (String "filtered") = pure Filtered
+  parseJSON (String "no") = pure $ No ()
+  parseJSON _ = fail "Invalid value"
+
+instance FromJSON IncludeHidden where
+  parseJSON (String "yes") = pure Yes
+  parseJSON (String "filtered") = pure Filtered
+  parseJSON _ = fail "Invalid value"
+
+instance FromJSON Spec where
+  parseJSON (String v) = case parse (parseSpec <* eof) "(spec)" (T.unpack v) of
+    Left err -> fail $ show err
+    Right s -> pure s
+  parseJSON _ = fail "Invalid value type"
+
+instance FromJSON TaskConfig where
+  parseJSON = withObject "TaskConfig" $ \v -> TaskConfig
+    <$> v .:? "globalTimeout" .!= 10000
+    <*> v .:? "treeStyle" .!= QueryStyle
+    <*> v .:? "includeTaskDefinitions" .!= Yes
+    <*> v .:? "includeHiddenDefinitions" .!= Yes
+    <*> v .:? "allowListPatternMatching" .!= True
+    <*> v .:? "showSWISHButton" .!= False
+    <*> v .:? "specifications" .!= []
+
+
+parseConfig :: String -> Either ParseError (TaskConfig, (String, String))
+parseConfig = parse (configuration <* eof) "(config)"
 
 configuration ::
   Parsec
     String
     ()
-    ( TimeoutDuration,
-      TreeStyle,
-      IncludeTask,
-      IncludeHidden,
-      AllowListMatching,
-      ShowSWISHButton,
-      [Spec],
+    ( TaskConfig,
       (String, String)
     )
-configuration = (\(d,st,it,ih,lm,sb,xs) s -> (d,st,it,ih,lm,sb,xs,s)) <$> specification <*> sourceText
+configuration = do
+  ls <- lines <$> anyChar `manyTill` eof
+  let (rawCfg, rest) = first unlines $ breakWhen ("---" `isPrefixOf`) ls
+  case decodeEither' (BS.pack rawCfg) of
+    Left err -> fail $ show err
+    Right taskCfg -> do
+      let predicates = bimap unlines unlines $ breakWhen ("---" `isPrefixOf`) rest
+      pure (taskCfg,predicates)
 
-specification ::
-  Parsec
-    String
-    ()
-    ( TimeoutDuration,
-      TreeStyle,
-      IncludeTask,
-      IncludeHidden,
-      AllowListMatching,
-      ShowSWISHButton,
-      [Spec]
-    )
-specification = do
-  lines' <- commentBlock
-  timeoutStyleAndSpecs <- zip [1 :: Integer ..] lines' `forM` \t ->
-    case parseSpecLine t of
-      Right spec -> return spec
-      Left err   -> fail (show err)
-  let TaskConfig {..} = partitionSpecLine $ catMaybes timeoutStyleAndSpecs
-  pure
-    ( fromMaybe 10000 mTimeout,
-      fromMaybe QueryStyle mStyle,
-      fromMaybe Yes mIncTask,
-      fromMaybe Yes mIncHidden,
-      fromMaybe True mListMatch,
-      fromMaybe False mSWISHButton,
-      specifications
-    )
+
+parseSpec :: Parsec String () Spec
+parseSpec = try newPredDeclParser <|> specLine
   where
-    parseSpecLine :: (Integer, String) -> Either ParseError (Maybe SpecLine)
-    parseSpecLine (i, s) = parse (
-        ((Nothing <$ commentLine)
-         <|> (Just <$> ((TimeoutSpec <$> try globalTimeout)
-                        <|> TreeStyleSpec <$> try treeStyle
-                        <|> IncludeHiddenSpec <$> try includeHidden
-                        <|> IncludeTaskSpec <$> try includeTask
-                        <|> ListMatchSpec <$> try allowListMatching
-                        <|> ShowsSWISHButtonSpec <$> try showSWISHButton
-                        <|> TestSpec <$> (try newPredDeclParser <|> specLine)))
-        ) <* eof)
-        ("Specification line " ++ show i) s
-
     specLine = ((\f g h i -> f . g . h . i)
                   <$> localTimeoutAnn
                   <*> negativeFlag
@@ -108,36 +100,6 @@ specification = do
         desc <- many1 anyChar
         pure $ newPredDecl t desc
 
-    includeHidden = do
-      void $ string "Include hidden definitions:"
-      spaces
-      Yes <$ string "yes" <|> Filtered <$ string "filtered"
-
-    includeTask = do
-      void $ string "Include task definitions:"
-      spaces
-      Yes <$ string "yes" <|> Filtered <$ string "filtered" <|> No () <$ string "no"
-
-    globalTimeout = do
-      void $ string "Global timeout:"
-      spaces
-      read <$> many1 digit
-
-    treeStyle = do
-      void $ string "Tree style:"
-      spaces
-      QueryStyle <$ string "query" <|> ResolutionStyle <$ string "resolution"
-
-    allowListMatching = do
-      void $ string "Allow list pattern matching:"
-      spaces
-      True <$ string "yes" <|> False <$ string "no"
-
-    showSWISHButton = do
-      void $ string "Show SWISH button:"
-      spaces
-      True <$ string "yes" <|> False <$ string "no"
-
     localTimeoutAnn = option id $
       localTimeout . read
       <$> between (char '[') (char ']') (many1 digit) <* spaces
@@ -146,27 +108,44 @@ specification = do
 
     hiddenFlag   = option id $
       char '!' >> hidden
-      <$> option "" (try (between (char '(') (char ')') (many $ noneOf ")")))
+      <$> option "" (try (between (char '(') (char ')') description))
 
     withTreeFlag = option id $ (char '@' >> return withTree)
                            <|> (char '#' >> return withTreeNegative)
 
-commentLine :: Parsec String u String
-commentLine = spaces >> char '%' >> many anyChar
+    description = try (between (char '"') (char '"') (descriptionMsg "\""))
+      <|> try (between (char '\'') (char '\'') (descriptionMsg "'"))
+      <|> descriptionMsg ")"
 
-commentBlock :: Parsec String u [String]
-commentBlock = do
-  let startMarker =            string "/* "
-  let separator   = endOfLine >> string " * "
-  let endMarker   = endOfLine >> string " */"
-  let content     = many $ notFollowedBy separator >> notFollowedBy endMarker >> anyToken
-  between startMarker endMarker $ content `sepBy` try separator
+    descriptionMsg :: String -> Parsec String () String
+    descriptionMsg end = many (noneOf end)
 
-sourceText :: Parsec String u (String, String)
-sourceText = do
-  ls <- lines <$> anyChar `manyTill` eof
-  let (visiblePart, hiddenPart) = breakWhen ("---" `isPrefixOf`) ls
-  return (unlines visiblePart, unlines hiddenPart)
+defaultOptions :: Requirement -> Spec
+defaultOptions = Spec Visible DontShowTree PositiveResult GlobalTimeout
 
 breakWhen :: (a -> Bool) -> [a] -> ([a],[a])
 breakWhen p = (takeWhile (not . p) &&& dropWhile (not . p)) >>> second (drop 1)
+
+queryWithAnswers :: [Term] -> [[Term]] -> Spec
+queryWithAnswers q as =  defaultOptions $ QueryWithAnswers q as
+
+statementToCheck :: [Term] -> Spec
+statementToCheck ts = defaultOptions $ StatementToCheck ts
+
+hidden :: String -> Spec -> Spec
+hidden s spec = spec { specVisibility = Hidden s }
+
+withTree :: Spec -> Spec
+withTree spec = spec { specVisualize = ShowTree}
+
+withTreeNegative :: Spec -> Spec
+withTreeNegative = negative . withTree
+
+newPredDecl :: Term -> String -> Spec
+newPredDecl t s = defaultOptions $ NewPredDecl t s
+
+negative :: Spec -> Spec
+negative spec = spec { specExpection = NegativeResult}
+
+localTimeout :: Int -> Spec -> Spec
+localTimeout d spec = spec {specTimeout = LocalTimeout d}
