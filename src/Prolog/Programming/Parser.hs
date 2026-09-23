@@ -22,6 +22,9 @@ import Data.Yaml (decodeEither', FromJSON (..), Value (..), withObject, (.:?), (
 import qualified Data.ByteString.Char8 as BS (pack)
 import qualified Data.Text as T (unpack)
 import Data.Bifunctor (Bifunctor(..))
+import Prolog.Programming.CodeAnalysis.Config (defaultCodeAnalysisConfig)
+import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), Severity)
+import qualified Prolog.Programming.CodeAnalysis.Types as CA (Severity(..))
 
 instance FromJSON TreeStyle where
   parseJSON (String "query") = pure QueryStyle
@@ -45,6 +48,18 @@ instance FromJSON Spec where
     Right s -> pure s
   parseJSON _ = fail "Invalid value type"
 
+instance FromJSON Severity where
+  parseJSON (String "hint") = pure CA.Hint
+  parseJSON (String "warn") = pure CA.Warn
+  parseJSON (String "error") = pure CA.Error
+  parseJSON _ = fail "Invalid value type"
+
+instance FromJSON CodeAnalysisConfig where
+  parseJSON = withObject "CodeAnalysisConfig" $ \v -> CodeAnalysisConfig
+    <$> v .:? "singletonVariablesSeverity" .!= singletonVariablesSeverity defaultCodeAnalysisConfig
+    <*> v .:? "allowCutUsage" .!= allowCutUsage defaultCodeAnalysisConfig
+    <*> v .:? "additionalCutUsageMessage" .!= additionalCutUsageMessage defaultCodeAnalysisConfig
+
 instance FromJSON TaskConfig where
   parseJSON = withObject "TaskConfig" $ \v -> TaskConfig
     <$> v .:? "globalTimeout" .!= 10000
@@ -53,6 +68,7 @@ instance FromJSON TaskConfig where
     <*> v .:? "includeHiddenDefinitions" .!= Yes
     <*> v .:? "allowListPatternMatching" .!= True
     <*> v .:? "showSWISHButton" .!= False
+    <*> v .:? "codeAnalysis" .!= defaultCodeAnalysisConfig
     <*> v .:? "specifications" .!= []
 
 
