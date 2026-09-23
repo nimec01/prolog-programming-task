@@ -91,7 +91,7 @@ taskDefinitionsIncluded :: Config -> Bool
 taskDefinitionsIncluded (Config cfg) =
   case parseConfig cfg of
     Left _         -> False
-    Right (TaskConfig {..}, _) -> case incTask of
+    Right (TaskConfig {..}, _) -> case includeTask of
       Yes      -> True
       Filtered -> True
       No ()     -> False
@@ -116,14 +116,14 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
   let (TaskConfig{..},(visible_facts,hidden_facts))
         = parseConfig cfg `orError` "config should have been validated earlier"
       drawTree tree = do
-        svg <- liftIO $ asInlineSvgWith (grabFormatting style) tree
+        svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
         drawPicture svg
 
   case consultString input of
     Left err -> reject . text . pack $ show err
     Right inProg -> do
 
-      when (not listMatch) $
+      when (not allowListMatching) $
         case containsHeadTailPattern inProg of
           Nothing -> pure ()
           Just t -> reject . text . pack $ "forbidden use of head/tail-list-matching in " ++ show t
@@ -145,13 +145,13 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
 
       case consultStringsAndFilter
         visible_facts
-        (taskFilter incTask inProg)
+        (taskFilter includeTask inProg)
         hidden_facts
-        (hiddenFilter incHidden inProg)
+        (hiddenFilter includeHidden inProg)
        of
         Left err -> reject . text . pack $ show err
         Right factProg -> do
-          testResult <- liftIO $ testRunner timeout factProg inProg specifications newDefs
+          testResult <- liftIO $ testRunner globalTimeout factProg inProg specifications newDefs
           case testResult of
             (Finished AllOk,(passed,_)) ->
               inform $ vcat

@@ -18,11 +18,11 @@ type AllowListMatching = Bool
 type ShowSWISHButton = Bool
 
 data TaskConfig = TaskConfig
-  { timeout :: TimeoutDuration,
-    style :: TreeStyle,
-    incTask :: IncludeTask,
-    incHidden :: IncludeHidden,
-    listMatch :: AllowListMatching,
+  { globalTimeout :: TimeoutDuration,
+    treeStyle :: TreeStyle,
+    includeTask :: IncludeTask,
+    includeHidden :: IncludeHidden,
+    allowListMatching :: AllowListMatching,
     displaySWISHButton :: ShowSWISHButton,
     specifications :: [Spec]
   }
