@@ -2,6 +2,8 @@ module Prolog.Programming.CodeAnalysis.Types
   ( Problem (..),
     Rule,
     CodeAnalysisConfig (..),
+    SingletonVariablesConfig (..),
+    CutUsageConfig (..),
     Severity (..),
     WithSeverity (..),
   )
@@ -22,16 +24,32 @@ data Problem = Problem
 -- | Definition for a code analysis checker that looks for violations in a given clause
 type Rule = Clause -> [Problem]
 
+data SingletonVariablesConfig = SingletonVariablesConfig
+  { -- | Whether to check for singleton variables or not
+    allowSingletonVariables :: Bool,
+    -- | What severity to use when reporting.
+    singletonVariablesSeverity :: Severity
+  }
+  deriving (Show)
+
+data CutUsageConfig = CutUsageConfig
+  { -- | Whether to allow usage of the cut operator or not
+    allowCutUsage :: Bool,
+    -- | What severity to use when reporting.
+    cutUsageSeverity :: Severity,
+    -- | Additional message to show on report.
+    cutUsageMessage :: Maybe String
+  }
+  deriving (Show)
+
 -- | Configuration for code analysis checks
 data CodeAnalysisConfig = CodeAnalysisConfig
-  { -- | The severity to use when reporting singleton variables.
-    -- `Nothing` results in no singleton variables being reported.
-    singletonVariablesSeverity :: Maybe Severity,
-    -- | Whether cuts are allowed to be used or not
-    allowCutUsage :: Bool,
-    -- | Optional message to show additionally next default explanation
-    additionalCutUsageMessage :: Maybe String
+  { -- | Configuration for singletonVariables rule
+    singletonVariables :: SingletonVariablesConfig,
+    -- | Configuration for cutUsage rule
+    cutUsage :: CutUsageConfig
   }
+  deriving (Show)
 
 -- | Classification for seriousness of violation
 --

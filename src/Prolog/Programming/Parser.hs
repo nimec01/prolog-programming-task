@@ -22,8 +22,12 @@ import Data.Yaml (decodeEither', FromJSON (..), Value (..), withObject, (.:?), (
 import qualified Data.ByteString.Char8 as BS (pack)
 import qualified Data.Text as T (unpack)
 import Data.Bifunctor (Bifunctor(..))
-import Prolog.Programming.CodeAnalysis.Config (defaultCodeAnalysisConfig)
-import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig (..), Severity)
+import Prolog.Programming.CodeAnalysis.Config (
+  defaultCodeAnalysisConfig, defaultSingletonVariablesConfig, defaultCutUsageConfig
+  )
+import Prolog.Programming.CodeAnalysis.Types (
+  CodeAnalysisConfig (..), Severity, SingletonVariablesConfig (..), CutUsageConfig (..)
+  )
 import qualified Prolog.Programming.CodeAnalysis.Types as CA (Severity(..))
 
 instance FromJSON TreeStyle where
@@ -54,22 +58,36 @@ instance FromJSON Severity where
   parseJSON (String "error") = pure CA.Error
   parseJSON _ = fail "Invalid value type"
 
+instance FromJSON SingletonVariablesConfig where
+  parseJSON = withObject "SingletonVariablesConfig" $ \v ->
+    SingletonVariablesConfig
+      <$> v .:? "allow" .!= allowSingletonVariables defaultSingletonVariablesConfig
+      <*> v .:? "severity" .!= singletonVariablesSeverity defaultSingletonVariablesConfig
+
+instance FromJSON CutUsageConfig where
+  parseJSON = withObject "CutUsageConfig" $ \v ->
+    CutUsageConfig
+      <$> v .:? "allow" .!= allowCutUsage defaultCutUsageConfig
+      <*> v .:? "severity" .!= cutUsageSeverity defaultCutUsageConfig
+      <*> v .:? "additionalMessage" .!= Nothing
+
 instance FromJSON CodeAnalysisConfig where
-  parseJSON = withObject "CodeAnalysisConfig" $ \v -> CodeAnalysisConfig
-    <$> v .:? "singletonVariablesSeverity" .!= singletonVariablesSeverity defaultCodeAnalysisConfig
-    <*> v .:? "allowCutUsage" .!= allowCutUsage defaultCodeAnalysisConfig
-    <*> v .:? "additionalCutUsageMessage" .!= additionalCutUsageMessage defaultCodeAnalysisConfig
+  parseJSON = withObject "CodeAnalysisConfig" $ \v ->
+    CodeAnalysisConfig
+      <$> v .:? "singletonVariables" .!= defaultSingletonVariablesConfig
+      <*> v .:? "cutUsage" .!= defaultCutUsageConfig
 
 instance FromJSON TaskConfig where
-  parseJSON = withObject "TaskConfig" $ \v -> TaskConfig
-    <$> v .:? "globalTimeout" .!= 10000
-    <*> v .:? "treeStyle" .!= QueryStyle
-    <*> v .:? "includeTaskDefinitions" .!= Yes
-    <*> v .:? "includeHiddenDefinitions" .!= Yes
-    <*> v .:? "allowListPatternMatching" .!= True
-    <*> v .:? "showSWISHButton" .!= False
-    <*> v .:? "codeAnalysis" .!= defaultCodeAnalysisConfig
-    <*> v .:? "specifications" .!= []
+  parseJSON = withObject "TaskConfig" $ \v ->
+    TaskConfig
+      <$> v .:? "globalTimeout" .!= 10000
+      <*> v .:? "treeStyle" .!= QueryStyle
+      <*> v .:? "includeTaskDefinitions" .!= Yes
+      <*> v .:? "includeHiddenDefinitions" .!= Yes
+      <*> v .:? "allowListPatternMatching" .!= True
+      <*> v .:? "showSWISHButton" .!= False
+      <*> v .:? "codeAnalysis" .!= defaultCodeAnalysisConfig
+      <*> v .:? "specifications" .!= []
 
 
 parseConfig :: String -> Either ParseError (TaskConfig, (String, String))

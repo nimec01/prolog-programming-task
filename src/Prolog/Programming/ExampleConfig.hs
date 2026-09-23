@@ -32,6 +32,21 @@ treeStyle: query
 # whether to enable display of button that allows students to transfer code to SWISH; disabled by default
 # showSWISHButton: false
 
+# setting for code analysis
+# codeAnalysis:
+#   singletonVariables:
+#     # whether singleton variables are allowed to occur or not, defaults to 'true'
+#     allow: true
+#     # severity to use when reporting, defaults to 'hint'
+#     severity: hint
+#   cutUsage: 
+#     # whether to allow usage of the cut operator or not, defaults to 'true'
+#     allow: true
+#     # severity to use when reporting, defaults to 'error'
+#     severity: error
+#     # additional message to display next to default explanation
+#     additionalMessage: "We didn't introduce this operator yet."
+
 # prefixing a test with [<time out in ms>] sets a local timeout for that test
 specifications:
   - 'a_predicate(Foo,Bar): a_predicate(expected_foo1,expected_bar1), a_predicate(expected_foo2,expected_bar2)'

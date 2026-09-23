@@ -4,16 +4,26 @@ import CodeAnalysis.Helper (shouldDetectProblemsStrict, shouldNotDetectProblems)
 import Data.List (isInfixOf)
 import Prolog.Programming.CodeAnalysis.Types
   ( CodeAnalysisConfig (..),
-    Severity (Warn),
+    CutUsageConfig (..),
+    Severity (..),
+    SingletonVariablesConfig (..),
   )
 import Test.Hspec (Expectation, Spec, describe, it)
 
 caConfig :: CodeAnalysisConfig
 caConfig =
   CodeAnalysisConfig
-    { singletonVariablesSeverity = Just Warn,
-      allowCutUsage = False,
-      additionalCutUsageMessage = Nothing
+    { singletonVariables =
+        SingletonVariablesConfig
+          { allowSingletonVariables = False,
+            singletonVariablesSeverity = Hint
+          },
+      cutUsage =
+        CutUsageConfig
+          { allowCutUsage = True,
+            cutUsageSeverity = Error,
+            cutUsageMessage = Nothing
+          }
     }
 
 detect :: String -> Bool

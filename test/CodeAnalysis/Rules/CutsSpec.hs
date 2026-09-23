@@ -4,25 +4,36 @@ import CodeAnalysis.Helper (shouldDetectProblemsStrict, shouldNotDetectProblems)
 import Data.List (isInfixOf)
 import Prolog.Programming.CodeAnalysis.Types
   ( CodeAnalysisConfig (..),
+    CutUsageConfig (..),
+    Severity (..),
+    SingletonVariablesConfig (..),
   )
 import Test.Hspec (Expectation, Spec, describe, it)
 
-caConfig :: CodeAnalysisConfig
-caConfig =
+caConfig :: Maybe String -> CodeAnalysisConfig
+caConfig cMsg =
   CodeAnalysisConfig
-    { singletonVariablesSeverity = Nothing,
-      allowCutUsage = False,
-      additionalCutUsageMessage = Nothing
+    { singletonVariables =
+        SingletonVariablesConfig
+          { allowSingletonVariables = True,
+            singletonVariablesSeverity = Hint
+          },
+      cutUsage =
+        CutUsageConfig
+          { allowCutUsage = False,
+            cutUsageSeverity = Error,
+            cutUsageMessage = cMsg
+          }
     }
 
 detect :: String -> Bool
 detect = isInfixOf "makes use of the cut (!) operator"
 
 detectsProblem :: String -> Expectation
-detectsProblem = shouldDetectProblemsStrict caConfig [detect]
+detectsProblem = shouldDetectProblemsStrict (caConfig Nothing) [detect]
 
 doesNotDetectProblem :: String -> Expectation
-doesNotDetectProblem = shouldNotDetectProblems caConfig [detect]
+doesNotDetectProblem = shouldNotDetectProblems (caConfig Nothing) [detect]
 
 spec :: Spec
 spec = describe "Cuts" $ do
@@ -37,6 +48,6 @@ spec = describe "Cuts" $ do
 
   it "detect problem with additional message" $
     shouldDetectProblemsStrict
-      (caConfig {additionalCutUsageMessage = Just "We have not introduced this operator yet."})
+      (caConfig $ Just "We have not introduced this operator yet.")
       [isInfixOf "We have not introduced this operator yet."]
       "p(X) :- q(X), !."
