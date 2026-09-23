@@ -44,7 +44,7 @@ import Text.Parsec (ParseError)
 import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
   )
--- import Prolog.Programming.CodeAnalysis (checkForProblems, displayProblems)
+import Prolog.Programming.CodeAnalysis (checkForProblems, displayProblems)
 import Prolog.Programming.Types (
   TaskConfig(..), Include (..), Spec (..), Requirement (..), IncludeTask, IncludeHidden,
   Visibility (..), Expection (..), TreeStyle (..)
@@ -187,9 +187,9 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
                    then ", tests not run: " ++ show notRun
                    else "")
 
-      -- case checkForProblems caConfig inProg of
-      --   [] -> pure ()
-      --   pbs -> either reject inform $ displayProblems pbs
+      case checkForProblems codeAnalysisConfig inProg of
+        [] -> pure ()
+        pbs -> either reject inform $ displayProblems pbs
 
 consultStringsAndFilter :: String -> (Clause -> Bool) -> String -> (Clause -> Bool) -> Either ParseError [Clause]
 consultStringsAndFilter visibleDefs keepVisible hiddenDefs keepHidden = do
