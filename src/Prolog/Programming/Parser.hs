@@ -40,7 +40,7 @@ instance FromJSON IncludeHidden where
   parseJSON _ = fail "Invalid value"
 
 instance FromJSON Spec where
-  parseJSON (String v) = case parse parseSpec "(spec)" (T.unpack v) of
+  parseJSON (String v) = case parse (parseSpec <* eof) "(spec)" (T.unpack v) of
     Left err -> fail $ show err
     Right s -> pure s
   parseJSON _ = fail "Invalid value type"
