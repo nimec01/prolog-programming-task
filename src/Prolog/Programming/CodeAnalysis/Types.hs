@@ -24,19 +24,15 @@ data Problem = Problem
 -- | Definition for a code analysis checker that looks for violations in a given clause
 type Rule = Clause -> [Problem]
 
-data SingletonVariablesConfig = SingletonVariablesConfig
-  { -- | Whether to check for singleton variables or not
-    allowSingletonVariables :: Bool,
-    -- | What severity to use when reporting.
-    singletonVariablesSeverity :: Severity
+newtype SingletonVariablesConfig = SingletonVariablesConfig
+  { -- | What severity to use when reporting. `Nothing` will disable checks for singleton variables.
+    singletonVariablesSeverity :: Maybe Severity
   }
   deriving (Show)
 
 data CutUsageConfig = CutUsageConfig
-  { -- | Whether to allow usage of the cut operator or not
-    allowCutUsage :: Bool,
-    -- | What severity to use when reporting.
-    cutUsageSeverity :: Severity,
+  { -- | What severity to use when reporting. `Nothing` will disable checks for usage of the cut operator.
+    cutUsageSeverity :: Maybe Severity,
     -- | Additional message to show on report.
     cutUsageMessage :: Maybe String
   }

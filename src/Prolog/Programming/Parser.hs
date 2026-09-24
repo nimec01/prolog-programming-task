@@ -6,7 +6,7 @@ module Prolog.Programming.Parser (
   parseSpec
   ) where
 
-import Control.Monad                    (void)
+import Control.Monad                    (void, when)
 import Control.Arrow                    ((>>>), (&&&))
 
 import Data.List                        (isPrefixOf)
@@ -29,6 +29,8 @@ import Prolog.Programming.CodeAnalysis.Types (
   CodeAnalysisConfig (..), Severity, SingletonVariablesConfig (..), CutUsageConfig (..)
   )
 import qualified Prolog.Programming.CodeAnalysis.Types as CA (Severity(..))
+import Data.Yaml.Aeson (Parser)
+import Data.Maybe (isNothing, isJust)
 
 instance FromJSON TreeStyle where
   parseJSON (String "query") = pure QueryStyle
@@ -52,24 +54,35 @@ instance FromJSON Spec where
     Right s -> pure s
   parseJSON _ = fail "Invalid value type"
 
-instance FromJSON Severity where
-  parseJSON (String "hint") = pure CA.Hint
-  parseJSON (String "warn") = pure CA.Warn
-  parseJSON (String "error") = pure CA.Error
-  parseJSON _ = fail "Invalid value type"
+parseStatus :: Value -> Parser (Maybe Severity)
+parseStatus (String "ignore") = pure Nothing
+parseStatus (String "hint") = pure $ Just CA.Hint
+parseStatus (String "warn") = pure $ Just CA.Warn
+parseStatus (String "reject") = pure $ Just CA.Error
+parseStatus _ = fail "Invalid value type"
 
 instance FromJSON SingletonVariablesConfig where
-  parseJSON = withObject "SingletonVariablesConfig" $ \v ->
-    SingletonVariablesConfig
-      <$> v .:? "allow" .!= allowSingletonVariables defaultSingletonVariablesConfig
-      <*> v .:? "severity" .!= singletonVariablesSeverity defaultSingletonVariablesConfig
+  parseJSON = withObject "SingletonVariablesConfig" $ \v -> do
+    mStatus <- v .:? "status"
+
+    status <- maybe (pure Nothing) parseStatus mStatus
+
+    pure $ SingletonVariablesConfig { singletonVariablesSeverity = status }
 
 instance FromJSON CutUsageConfig where
-  parseJSON = withObject "CutUsageConfig" $ \v ->
-    CutUsageConfig
-      <$> v .:? "allow" .!= allowCutUsage defaultCutUsageConfig
-      <*> v .:? "severity" .!= cutUsageSeverity defaultCutUsageConfig
-      <*> v .:? "additionalMessage" .!= Nothing
+  parseJSON = withObject "CutUsageConfig" $ \v -> do
+    mStatus <- v .:? "status"
+
+    status <- maybe (pure Nothing) parseStatus mStatus
+
+    msg <- v .:? "additionalMessage"
+
+    when (isNothing status && isJust msg) $ fail "additionalMessage is only allowed to exist when status is not 'ignore'"
+
+    pure $ CutUsageConfig
+      { cutUsageSeverity = status
+      , cutUsageMessage = msg
+      }
 
 instance FromJSON CodeAnalysisConfig where
   parseJSON = withObject "CodeAnalysisConfig" $ \v ->

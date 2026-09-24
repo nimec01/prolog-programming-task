@@ -5,6 +5,7 @@ bimap
 concat
 Concat
 dcg
+fmap
 foldl
 foldr
 fst

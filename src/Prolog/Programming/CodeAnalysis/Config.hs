@@ -14,7 +14,6 @@ import Prolog.Programming.CodeAnalysis.Types
   ( CodeAnalysisConfig (..),
     CutUsageConfig (..),
     Rule,
-    Severity (..),
     SingletonVariablesConfig (..),
     WithSeverity (..),
   )
@@ -25,21 +24,25 @@ configuredRules
     { cutUsage = CutUsageConfig {..},
       singletonVariables = SingletonVariablesConfig {..}
     } =
-    [WithSeverity cutUsageSeverity (cutsRule cutUsageMessage) | not allowCutUsage]
-      ++ [WithSeverity singletonVariablesSeverity singletonVariablesRule | not allowSingletonVariables]
+    maybe
+      []
+      (\sev -> [WithSeverity sev (cutsRule cutUsageMessage)])
+      cutUsageSeverity
+      ++ maybe
+        []
+        (\sev -> [WithSeverity sev singletonVariablesRule])
+        singletonVariablesSeverity
 
 defaultSingletonVariablesConfig :: SingletonVariablesConfig
 defaultSingletonVariablesConfig =
   SingletonVariablesConfig
-    { allowSingletonVariables = True,
-      singletonVariablesSeverity = Hint
+    { singletonVariablesSeverity = Nothing
     }
 
 defaultCutUsageConfig :: CutUsageConfig
 defaultCutUsageConfig =
   CutUsageConfig
-    { allowCutUsage = True,
-      cutUsageSeverity = Error,
+    { cutUsageSeverity = Nothing,
       cutUsageMessage = Nothing
     }
 
