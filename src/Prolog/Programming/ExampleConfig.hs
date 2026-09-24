@@ -32,13 +32,13 @@ treeStyle: query
 # whether to enable display of button that allows students to transfer code to SWISH; disabled by default
 # showSWISHButton: false
 
-# setting for code analysis
-# the status field for each aspect has the following possible values:
+# setting for code analysis;
+# The status field for each aspect has the following possible values:
 # 'ignore': aspect is ignored
 # 'hint': detections are reported with severity hint
 # 'warn': detections are reported with severity warn
 # 'reject': programs with detections are rejected
-# The default value for these fields is 'ignore'.
+# The default value for these fields is 'ignore' (in which case the aspect's mention can be omitted as well).
 # codeAnalysis:
 #   singletonVariables:
 #     # what to do concerning detection of singleton variables
@@ -47,8 +47,8 @@ treeStyle: query
 #     # what to do concerning detection of cut usage
 #     status: ignore
 #     # additional message to display next to default feedback
-#     # This field is only allowed to appear when status is not set to 'ignore', and even otherwise it is optional.
 #     # additionalMessage: "We didn't introduce this operator yet."
+#     # This field is only allowed to appear when status is not set to 'ignore', and even otherwise it is optional.
 
 # prefixing a test with [<time out in ms>] sets a local timeout for that test
 specifications:
