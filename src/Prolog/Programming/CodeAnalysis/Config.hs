@@ -26,11 +26,11 @@ configuredRules
     } =
     maybe
       []
-      (\sev -> [WithSeverity sev (cutsRule cutUsageMessage)])
+      (\severity -> [WithSeverity severity (cutsRule cutUsageMessage)])
       cutUsageSeverity
       ++ maybe
         []
-        (\sev -> [WithSeverity sev singletonVariablesRule])
+        (\severity -> [WithSeverity severity singletonVariablesRule])
         singletonVariablesSeverity
 
 defaultSingletonVariablesConfig :: SingletonVariablesConfig
