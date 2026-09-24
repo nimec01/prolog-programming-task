@@ -77,7 +77,8 @@ instance FromJSON CutUsageConfig where
 
     msg <- v .:? "additionalMessage"
 
-    when (isNothing status && isJust msg) $ fail "additionalMessage is only allowed to exist when status is not 'ignore'"
+    when (isNothing status && isJust msg) $ 
+      fail "additionalMessage is only allowed to exist when status is not 'ignore'"
 
     pure $ CutUsageConfig
       { cutUsageSeverity = status
