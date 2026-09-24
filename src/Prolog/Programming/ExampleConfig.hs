@@ -33,21 +33,21 @@ treeStyle: query
 # showSWISHButton: false
 
 # setting for code analysis
-# the status field for each rule has the following possible values:
-# 'ignore': rule is ignored
-# 'hint': violations are reported with severity hint
-# 'warn': violations are reported with severity warn
-# 'reject': programs with violations are rejected
+# the status field for each aspect has the following possible values:
+# 'ignore': aspect is ignored
+# 'hint': detections are reported with severity hint
+# 'warn': detections are reported with severity warn
+# 'reject': programs with detections are rejected
 # The default value for these fields is 'ignore'.
 # codeAnalysis:
 #   singletonVariables:
-#     # whether singleton variables are allowed to occur or not
+#     # what to do concerning detection of singleton variables
 #     status: ignore
 #   cutUsage:
-#     # whether to allow usage of the cut operator or not
+#     # what to do concerning detection of cut usage
 #     status: ignore
-#     # additional message to display next to default explanation
-#     # This field is only allowed to appear when status is not set to 'ignore', and even otherwise is optional.
+#     # additional message to display next to default feedback
+#     # This field is only allowed to appear when status is not set to 'ignore', and even otherwise it is optional.
 #     # additionalMessage: "We didn't introduce this operator yet."
 
 # prefixing a test with [<time out in ms>] sets a local timeout for that test
