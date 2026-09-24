@@ -59,7 +59,7 @@ parseStatus (String "ignore") = pure Ignore
 parseStatus (String "hint") = pure $ Detect CA.Hint ()
 parseStatus (String "warn") = pure $ Detect CA.Warn ()
 parseStatus (String "reject") = pure $ Detect CA.Error ()
-parseStatus _ = fail "Invalid value type"
+parseStatus _ = fail "status must be one of: 'ignore', 'hint', 'warn', or 'reject'"
 
 instance FromJSON SingletonVariablesConfig where
   parseJSON = withObject "SingletonVariablesConfig" $ \v -> do
