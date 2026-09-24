@@ -1,17 +1,15 @@
-{-# LANGUAGE RecordWildCards #-}
-
 module Prolog.Programming.CodeAnalysis.Config
   ( configuredRules,
-    defaultSingletonVariablesConfig,
-    defaultCutUsageConfig,
     defaultCodeAnalysisConfig,
   )
 where
 
+import Data.Maybe (catMaybes)
 import Prolog.Programming.CodeAnalysis.Rules.Cuts (cutsRule)
 import Prolog.Programming.CodeAnalysis.Rules.SingletonVariables (singletonVariablesRule)
 import Prolog.Programming.CodeAnalysis.Types
   ( CodeAnalysisConfig (..),
+    CodeAnalysisRuleConfig (..),
     CutUsageConfig (..),
     Rule,
     SingletonVariablesConfig (..),
@@ -20,35 +18,19 @@ import Prolog.Programming.CodeAnalysis.Types
 
 configuredRules :: CodeAnalysisConfig -> [WithSeverity Rule]
 configuredRules
-  CodeAnalysisConfig
-    { cutUsage = CutUsageConfig {..},
-      singletonVariables = SingletonVariablesConfig {..}
-    } =
-    maybe
-      []
-      (\severity -> [WithSeverity severity (cutsRule cutUsageMessage)])
-      cutUsageSeverity
-      ++ maybe
-        []
-        (\severity -> [WithSeverity severity singletonVariablesRule])
-        singletonVariablesSeverity
-
-defaultSingletonVariablesConfig :: SingletonVariablesConfig
-defaultSingletonVariablesConfig =
-  SingletonVariablesConfig
-    { singletonVariablesSeverity = Nothing
-    }
-
-defaultCutUsageConfig :: CutUsageConfig
-defaultCutUsageConfig =
-  CutUsageConfig
-    { cutUsageSeverity = Nothing,
-      cutUsageMessage = Nothing
-    }
+  CodeAnalysisConfig {singletonVariables = SingletonVariablesConfig singletonVarsCfg, cutUsage = CutUsageConfig cutsCfg} =
+    catMaybes
+      [ toConfigured singletonVarsCfg (const singletonVariablesRule),
+        toConfigured cutsCfg cutsRule
+      ]
+    where
+      toConfigured :: CodeAnalysisRuleConfig a -> (a -> Rule) -> Maybe (WithSeverity Rule)
+      toConfigured Ignore _ = Nothing
+      toConfigured (Detect severity' extra) build = Just (WithSeverity severity' (build extra))
 
 defaultCodeAnalysisConfig :: CodeAnalysisConfig
 defaultCodeAnalysisConfig =
   CodeAnalysisConfig
-    { singletonVariables = defaultSingletonVariablesConfig,
-      cutUsage = defaultCutUsageConfig
+    { singletonVariables = SingletonVariablesConfig Ignore,
+      cutUsage = CutUsageConfig Ignore
     }

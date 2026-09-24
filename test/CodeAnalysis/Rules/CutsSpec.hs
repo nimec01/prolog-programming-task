@@ -4,6 +4,7 @@ import CodeAnalysis.Helper (shouldDetectProblemsStrict, shouldNotDetectProblems)
 import Data.List (isInfixOf)
 import Prolog.Programming.CodeAnalysis.Types
   ( CodeAnalysisConfig (..),
+    CodeAnalysisRuleConfig (..),
     CutUsageConfig (..),
     Severity (..),
     SingletonVariablesConfig (..),
@@ -14,14 +15,9 @@ caConfig :: Maybe String -> CodeAnalysisConfig
 caConfig cMsg =
   CodeAnalysisConfig
     { singletonVariables =
-        SingletonVariablesConfig
-          { singletonVariablesSeverity = Just Hint
-          },
+        SingletonVariablesConfig Ignore,
       cutUsage =
-        CutUsageConfig
-          { cutUsageSeverity = Just Error,
-            cutUsageMessage = cMsg
-          }
+        CutUsageConfig $ Detect Error cMsg
     }
 
 detect :: String -> Bool

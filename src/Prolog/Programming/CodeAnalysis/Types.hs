@@ -1,8 +1,10 @@
 {-# LANGUAGE DeriveTraversable #-}
+
 module Prolog.Programming.CodeAnalysis.Types
   ( Problem (..),
     Rule,
     CodeAnalysisConfig (..),
+    CodeAnalysisRuleConfig (..),
     SingletonVariablesConfig (..),
     CutUsageConfig (..),
     Severity (..),
@@ -25,18 +27,18 @@ data Problem = Problem
 -- | Definition for a code analysis checker that looks for violations in a given clause
 type Rule = Clause -> [Problem]
 
-newtype SingletonVariablesConfig = SingletonVariablesConfig
-  { -- | What severity to use when reporting. `Nothing` will disable checks for singleton variables.
-    singletonVariablesSeverity :: Maybe Severity
-  }
+data CodeAnalysisRuleConfig a
+  = Ignore
+  | Detect
+      {ruleSeverity :: Severity, extraConfig :: a}
+  deriving (Show, Functor, Eq)
+
+newtype SingletonVariablesConfig = SingletonVariablesConfig (CodeAnalysisRuleConfig ())
   deriving (Show)
 
-data CutUsageConfig = CutUsageConfig
-  { -- | What severity to use when reporting. `Nothing` will disable checks for usage of the cut operator.
-    cutUsageSeverity :: Maybe Severity,
-    -- | Additional message to show on report.
-    cutUsageMessage :: Maybe String
-  }
+type AdditionalMessage = Maybe String
+
+newtype CutUsageConfig = CutUsageConfig (CodeAnalysisRuleConfig AdditionalMessage)
   deriving (Show)
 
 -- | Configuration for code analysis checks
@@ -70,4 +72,5 @@ data Severity
 data WithSeverity a = WithSeverity
   { severity :: Severity,
     value :: a
-  } deriving (Functor, Foldable, Traversable)
+  }
+  deriving (Functor, Foldable, Traversable)

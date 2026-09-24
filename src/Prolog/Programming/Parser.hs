@@ -23,14 +23,14 @@ import qualified Data.ByteString.Char8 as BS (pack)
 import qualified Data.Text as T (unpack)
 import Data.Bifunctor (Bifunctor(..))
 import Prolog.Programming.CodeAnalysis.Config (
-  defaultCodeAnalysisConfig, defaultSingletonVariablesConfig, defaultCutUsageConfig
+  defaultCodeAnalysisConfig
   )
 import Prolog.Programming.CodeAnalysis.Types (
-  CodeAnalysisConfig (..), Severity, SingletonVariablesConfig (..), CutUsageConfig (..)
+  CodeAnalysisConfig (..), SingletonVariablesConfig (..), CutUsageConfig (..), CodeAnalysisRuleConfig (..)
   )
 import qualified Prolog.Programming.CodeAnalysis.Types as CA (Severity(..))
 import Data.Yaml.Aeson (Parser)
-import Data.Maybe (isNothing, isJust)
+import Data.Maybe (isJust)
 
 instance FromJSON TreeStyle where
   parseJSON (String "query") = pure QueryStyle
@@ -54,42 +54,39 @@ instance FromJSON Spec where
     Right s -> pure s
   parseJSON _ = fail "Invalid value type"
 
-parseStatus :: Value -> Parser (Maybe Severity)
-parseStatus (String "ignore") = pure Nothing
-parseStatus (String "hint") = pure $ Just CA.Hint
-parseStatus (String "warn") = pure $ Just CA.Warn
-parseStatus (String "reject") = pure $ Just CA.Error
+parseStatus :: Value -> Parser (CodeAnalysisRuleConfig ())
+parseStatus (String "ignore") = pure Ignore
+parseStatus (String "hint") = pure $ Detect CA.Hint ()
+parseStatus (String "warn") = pure $ Detect CA.Warn ()
+parseStatus (String "reject") = pure $ Detect CA.Error ()
 parseStatus _ = fail "Invalid value type"
 
 instance FromJSON SingletonVariablesConfig where
   parseJSON = withObject "SingletonVariablesConfig" $ \v -> do
     mStatus <- v .:? "status"
 
-    status <- maybe (pure Nothing) parseStatus mStatus
+    status <- maybe (pure Ignore) parseStatus mStatus
 
-    pure $ SingletonVariablesConfig { singletonVariablesSeverity = status }
+    pure $ SingletonVariablesConfig status
 
 instance FromJSON CutUsageConfig where
   parseJSON = withObject "CutUsageConfig" $ \v -> do
     mStatus <- v .:? "status"
 
-    status <- maybe (pure Nothing) parseStatus mStatus
+    status <- maybe (pure Ignore) parseStatus mStatus
 
     msg <- v .:? "additionalMessage"
 
-    when (isNothing status && isJust msg) $
+    when (status == Ignore && isJust msg) $
       fail "additionalMessage is only allowed to exist when status is not 'ignore'"
 
-    pure $ CutUsageConfig
-      { cutUsageSeverity = status
-      , cutUsageMessage = msg
-      }
+    pure $ CutUsageConfig (msg <$ status)
 
 instance FromJSON CodeAnalysisConfig where
   parseJSON = withObject "CodeAnalysisConfig" $ \v ->
     CodeAnalysisConfig
-      <$> v .:? "singletonVariables" .!= defaultSingletonVariablesConfig
-      <*> v .:? "cutUsage" .!= defaultCutUsageConfig
+      <$> v .:? "singletonVariables" .!= SingletonVariablesConfig Ignore
+      <*> v .:? "cutUsage" .!= CutUsageConfig Ignore
 
 instance FromJSON TaskConfig where
   parseJSON = withObject "TaskConfig" $ \v -> TaskConfig
