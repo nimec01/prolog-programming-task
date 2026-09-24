@@ -69,3 +69,5 @@ spec = describe "NoSingletonVariables" $ do
     doesNotDetectProblem "p(X,X,X)."
   it "doesn't detect problems on example 18" $
     doesNotDetectProblem "p(X,X,X,X)."
+  it "doesn't detect problems on example 19" $
+    doesNotDetectProblem "p(_)."
