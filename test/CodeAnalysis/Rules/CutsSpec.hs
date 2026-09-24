@@ -15,13 +15,11 @@ caConfig cMsg =
   CodeAnalysisConfig
     { singletonVariables =
         SingletonVariablesConfig
-          { allowSingletonVariables = True,
-            singletonVariablesSeverity = Hint
+          { singletonVariablesSeverity = Just Hint
           },
       cutUsage =
         CutUsageConfig
-          { allowCutUsage = False,
-            cutUsageSeverity = Error,
+          { cutUsageSeverity = Just Error,
             cutUsageMessage = cMsg
           }
     }
