@@ -33,28 +33,22 @@ treeStyle: query
 # showSWISHButton: false
 
 # setting for code analysis
+# the status field for each rule has the following possible values:
+# 'ignore': rule is ignored
+# 'hint': violations are reported with severity hint
+# 'warn': violations are reported with severity warn
+# 'reject': programs with violations are rejected
+# The default value for these fields is 'ignore'.
 # codeAnalysis:
 #   singletonVariables:
 #     # whether singleton variables are allowed to occur or not
-#     # Possible values:
-#     # 'ignore': singleton variables are ignored
-#     # 'hint': singleton variables are reported with severity hint
-#     # 'warn': singleton variables are reported with severity warn
-#     # 'reject': programs with singleton variables are rejected
-#     # Default value: 'ignore'
 #     status: ignore
 #   cutUsage:
 #     # whether to allow usage of the cut operator or not
-#     # Possible values:
-#     # 'ignore': usage of cut operator is ignored
-#     # 'hint': usage of cut operator is reported with severity hint
-#     # 'warn': usage of cut operator is reported with severity warn
-#     # 'reject': programs with usage of cut operator are rejected
-#     # Default value: 'ignore'
 #     status: ignore
 #     # additional message to display next to default explanation
 #     # This field is only allowed to appear when status is not set to 'ignore', and even otherwise is optional.
-#     additionalMessage: "We didn't introduce this operator yet."
+#     # additionalMessage: "We didn't introduce this operator yet."
 
 # prefixing a test with [<time out in ms>] sets a local timeout for that test
 specifications:
