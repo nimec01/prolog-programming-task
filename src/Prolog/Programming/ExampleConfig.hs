@@ -53,7 +53,7 @@ treeStyle: query
 #     # Default value: 'ignore'
 #     status: ignore
 #     # additional message to display next to default explanation
-#     # This field is optional and only allowed to appear when status is not set to 'ignore'
+#     # This field is only allowed to appear when status is not set to 'ignore', and even otherwise is optional.
 #     additionalMessage: "We didn't introduce this operator yet."
 
 # prefixing a test with [<time out in ms>] sets a local timeout for that test
