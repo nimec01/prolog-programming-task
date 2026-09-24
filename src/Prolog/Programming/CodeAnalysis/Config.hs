@@ -18,7 +18,10 @@ import Prolog.Programming.CodeAnalysis.Types
 
 configuredRules :: CodeAnalysisConfig -> [WithSeverity Rule]
 configuredRules
-  CodeAnalysisConfig {singletonVariables = SingletonVariablesConfig singletonVarsCfg, cutUsage = CutUsageConfig cutsCfg} =
+  CodeAnalysisConfig
+    { singletonVariables = SingletonVariablesConfig singletonVarsCfg,
+      cutUsage = CutUsageConfig cutsCfg
+    } =
     catMaybes
       [ toConfigured singletonVarsCfg (const singletonVariablesRule),
         toConfigured cutsCfg cutsRule
