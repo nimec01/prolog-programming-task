@@ -3,6 +3,6 @@
   "reporters": ["consoleFull"],
   "ignore": ["**/.github/**", "**/test/**"],
   "minLines": 2,
-  "max-lines": 2000,
+  "maxLines": 2000,
   "absolute": true
 }
