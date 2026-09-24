@@ -92,16 +92,15 @@ instance FromJSON CodeAnalysisConfig where
       <*> v .:? "cutUsage" .!= defaultCutUsageConfig
 
 instance FromJSON TaskConfig where
-  parseJSON = withObject "TaskConfig" $ \v ->
-    TaskConfig
-      <$> v .:? "globalTimeout" .!= 10000
-      <*> v .:? "treeStyle" .!= QueryStyle
-      <*> v .:? "includeTaskDefinitions" .!= Yes
-      <*> v .:? "includeHiddenDefinitions" .!= Yes
-      <*> v .:? "allowListPatternMatching" .!= True
-      <*> v .:? "showSWISHButton" .!= False
-      <*> v .:? "codeAnalysis" .!= defaultCodeAnalysisConfig
-      <*> v .:? "specifications" .!= []
+  parseJSON = withObject "TaskConfig" $ \v -> TaskConfig
+    <$> v .:? "globalTimeout" .!= 10000
+    <*> v .:? "treeStyle" .!= QueryStyle
+    <*> v .:? "includeTaskDefinitions" .!= Yes
+    <*> v .:? "includeHiddenDefinitions" .!= Yes
+    <*> v .:? "allowListPatternMatching" .!= True
+    <*> v .:? "showSWISHButton" .!= False
+    <*> v .:? "codeAnalysis" .!= defaultCodeAnalysisConfig
+    <*> v .:? "specifications" .!= []
 
 
 parseConfig :: String -> Either ParseError (TaskConfig, (String, String))
