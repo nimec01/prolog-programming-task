@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveTraversable #-}
 module Prolog.Programming.CodeAnalysis.Types
   ( Problem (..),
     Rule,
@@ -69,4 +70,4 @@ data Severity
 data WithSeverity a = WithSeverity
   { severity :: Severity,
     value :: a
-  }
+  } deriving (Functor, Foldable, Traversable)

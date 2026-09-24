@@ -26,12 +26,7 @@ testCheck code = case consultString code of
   Right prog -> pure $ checkForProblems defaultCodeAnalysisConfig prog
 
 checkForProblems :: CodeAnalysisConfig -> Program -> [WithSeverity Problem]
-checkForProblems cfg =
-  concatMap
-    ( \c ->
-        concatMap (\WithSeverity {..} -> WithSeverity severity <$> value c) $
-          configuredRules cfg
-    )
+checkForProblems cfg = concatMap (\c -> concatMap (traverse ($ c)) $ configuredRules cfg)
 
 displayProblems :: [WithSeverity Problem] -> Either Doc Doc
 displayProblems pbs =
