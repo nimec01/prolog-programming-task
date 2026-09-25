@@ -73,15 +73,16 @@ import Text.PrettyPrint.Leijen.Text (
   (<+>),
  )
 
-verifyConfig :: MonadFail m => Config -> m ()
+verifyConfig :: (MonadFail m, MonadIO m, MonadRandom m) => Config -> m ()
 verifyConfig (Config cfg) =
-  case parseConfig cfg of
-    Left err -> fail $ show err
-    Right (TaskConfig _ _ _ Yes _ True _ _, _, (_, hiddenFacts)) -> case consultString hiddenFacts of
-      Left err -> fail $ show err
-      Right (_ : _) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
-      _ -> pure ()
-    _ -> pure ()
+  let solutionErrorDisplay err = fail $ "Failure during check of sample solution:\n" ++ show err
+  in case parseConfig cfg of
+       Left err -> fail $ show err
+       Right cfg'@(TaskConfig _ _ _ Yes _ True _ _, sol, (_, hiddenFacts)) -> case consultString hiddenFacts of
+         Left err -> fail $ show err
+         Right (_ : _) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
+         _ -> checkTask' solutionErrorDisplay (const $ pure ()) (const $ pure ()) cfg' (Code sol)
+       Right cfg'@(_, sol, _) -> checkTask' solutionErrorDisplay (const $ pure ()) (const $ pure ()) cfg' (Code sol)
 
 describeTask :: Config -> Doc
 describeTask (Config cfg) =
@@ -155,13 +156,22 @@ checkTask
   -> Config
   -> Code
   -> m ()
-checkTask reject inform drawPicture (Config cfg) (Code input) = do
-  let
-    (TaskConfig {..}, _, (visible_facts, hidden_facts)) =
-      parseConfig cfg `orError` "config should have been validated earlier"
-    drawTree tree = do
-      svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
-      drawPicture svg
+checkTask reject inform drawPicture (Config cfg) input =
+  let parsedCfg = parseConfig cfg `orError` "config should have been validated earlier"
+  in checkTask' reject inform drawPicture parsedCfg input
+
+checkTask'
+  :: (MonadIO m, MonadRandom m)
+  => (forall a. Doc -> m a)
+  -> (Doc -> m ())
+  -> (ByteString -> m ())
+  -> (TaskConfig, String, (String, String))
+  -> Code
+  -> m ()
+checkTask' reject inform drawPicture (TaskConfig {..}, _, (visible_facts, hidden_facts)) (Code input) = do
+  let drawTree tree = do
+        svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
+        drawPicture svg
 
   case consultString input of
     Left err -> reject . text . pack $ show err
