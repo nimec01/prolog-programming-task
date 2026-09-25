@@ -7,8 +7,8 @@ module Prolog.Programming.CodeAnalysis
 where
 
 import Data.Text.Lazy (pack)
-import Language.Prolog (Program, consultString)
-import Prolog.Programming.CodeAnalysis.Config (configuredRules, defaultCodeAnalysisConfig)
+import Language.Prolog (Program)
+import Prolog.Programming.CodeAnalysis.Config (configuredRules)
 import Prolog.Programming.CodeAnalysis.Types
   ( CodeAnalysisConfig (..),
     Problem (..),
@@ -16,13 +16,6 @@ import Prolog.Programming.CodeAnalysis.Types
     WithSeverity (..),
   )
 import Text.PrettyPrint.Leijen.Text (Doc, brackets, string, vsep, (<$$>))
-
-testCheck :: String -> IO [WithSeverity Problem]
-testCheck code = case consultString code of
-  Left err -> do
-    print err
-    pure []
-  Right prog -> pure $ checkForProblems defaultCodeAnalysisConfig prog
 
 checkForProblems :: CodeAnalysisConfig -> Program -> [WithSeverity Problem]
 checkForProblems cfg = concatMap (\c -> concatMap (traverse ($ c)) $ configuredRules cfg)
