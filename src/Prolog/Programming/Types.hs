@@ -2,6 +2,7 @@ module Prolog.Programming.Types where
 
 import Data.Void (Void)
 import Language.Prolog (Term)
+import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig)
 
 type TimeoutDuration = Int
 
@@ -24,6 +25,7 @@ data TaskConfig = TaskConfig
     includeHidden :: IncludeHidden,
     allowListMatching :: AllowListMatching,
     displaySWISHButton :: ShowSWISHButton,
+    codeAnalysisConfig :: CodeAnalysisConfig,
     specifications :: [Spec]
   }
 

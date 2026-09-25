@@ -46,6 +46,24 @@ specifications:
   # require the definition of a predicate with a user chosen name. Use a_predicate_to_define to refer this predicate in other tests.
   # New predicates will be mapped to required predicates in the order they are defined.
   # (The initial solution automatically provides comments helping the user with the correct ordering.)
+
+# setting for code analysis;
+# The status field for each aspect has the following possible values:
+# 'ignore': aspect is ignored
+# 'hint': detections are reported with severity hint
+# 'warn': detections are reported with severity warn
+# 'reject': programs with detections are rejected
+# The default value for these fields is 'ignore' (in which case the aspect's mention can be omitted as well).
+# codeAnalysis:
+#   singletonVariables:
+#     # what to do concerning detection of singleton variables
+#     status: ignore
+#   cutUsage:
+#     # what to do concerning detection of cut usage
+#     status: ignore
+#     # additional message to display next to default feedback
+#     # additionalMessage: "We didn't introduce this operator yet."
+#     # This field is only allowed to appear when status is not set to 'ignore', and even otherwise it is optional.
 ------------------------------
 /* Everything from here on (up to an optional hidden section separated by a line of 3 or more dashes)
  * will be part of the visible exercise description.

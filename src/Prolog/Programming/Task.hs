@@ -44,6 +44,7 @@ import Text.Parsec (ParseError)
 import Text.PrettyPrint.Leijen.Text (
   Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
   )
+import Prolog.Programming.CodeAnalysis (checkForProblems, displayProblems)
 import Prolog.Programming.Types (
   TaskConfig(..), Include (..), Spec (..), Requirement (..), IncludeTask, IncludeHidden,
   Visibility (..), Expection (..), TreeStyle (..)
@@ -53,7 +54,7 @@ verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
   case parseConfig cfg of
     Left err -> fail $ show err
-    Right (TaskConfig _ _ _ Yes _  True _, (_,hiddenFacts)) -> case consultString hiddenFacts of
+    Right (TaskConfig _ _ _ Yes _  True _ _, (_,hiddenFacts)) -> case consultString hiddenFacts of
         Left err -> fail $ show err
         Right (_:_) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
         _ -> pure ()
@@ -104,6 +105,16 @@ showSWISHButton (Config cfg) = displaySWISHButton
 orError :: Either a b -> String -> b
 orError x str = fromRight (error str) x
 
+{- Runs the following checks in this order:
+
+1. Does the program parse?
+2. Does the program respect a configured ban of head/tail pattern-matching on lists?
+3. Are all required predicates present?
+4. Is the specification (the tests) fulfilled by the program together with task and hidden predicates?
+5. Does the code analysis run through without rejections?
+
+The procedure aborts once the first check fails.
+-}
 checkTask
   :: (MonadIO m, MonadRandom m)
   => (forall a . Doc -> m a)
@@ -185,6 +196,10 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
                 ++ if notRun > 0 -- only show remaining tests if there is at least one test that was not run
                    then ", tests not run: " ++ show notRun
                    else "")
+
+      case checkForProblems codeAnalysisConfig inProg of
+        [] -> pure ()
+        pbs -> either reject inform $ displayProblems pbs
 
 consultStringsAndFilter :: String -> (Clause -> Bool) -> String -> (Clause -> Bool) -> Either ParseError [Clause]
 consultStringsAndFilter visibleDefs keepVisible hiddenDefs keepHidden = do

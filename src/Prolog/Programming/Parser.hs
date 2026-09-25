@@ -6,7 +6,7 @@ module Prolog.Programming.Parser (
   parseSpec
   ) where
 
-import Control.Monad                    (void)
+import Control.Monad                    (void, when)
 import Control.Arrow                    ((>>>), (&&&))
 
 import Data.List                        (isPrefixOf)
@@ -22,6 +22,15 @@ import Data.Yaml (decodeEither', FromJSON (..), Value (..), withObject, (.:?), (
 import qualified Data.ByteString.Char8 as BS (pack)
 import qualified Data.Text as T (unpack)
 import Data.Bifunctor (Bifunctor(..))
+import Prolog.Programming.CodeAnalysis.Config (
+  defaultCodeAnalysisConfig
+  )
+import Prolog.Programming.CodeAnalysis.Types (
+  CodeAnalysisConfig (..), SingletonVariablesConfig (..), CutUsageConfig (..), CodeAnalysisRuleConfig (..)
+  )
+import qualified Prolog.Programming.CodeAnalysis.Types as CA (Severity(..))
+import Data.Yaml.Aeson (Parser)
+import Data.Maybe (isJust)
 
 instance FromJSON TreeStyle where
   parseJSON (String "query") = pure QueryStyle
@@ -45,6 +54,40 @@ instance FromJSON Spec where
     Right s -> pure s
   parseJSON _ = fail "Invalid value type"
 
+parseStatus :: Value -> Parser (CodeAnalysisRuleConfig ())
+parseStatus (String "ignore") = pure Ignore
+parseStatus (String "hint") = pure $ Detect CA.Hint ()
+parseStatus (String "warn") = pure $ Detect CA.Warn ()
+parseStatus (String "reject") = pure $ Detect CA.Error ()
+parseStatus _ = fail "status must be one of: 'ignore', 'hint', 'warn', or 'reject'"
+
+instance FromJSON SingletonVariablesConfig where
+  parseJSON = withObject "SingletonVariablesConfig" $ \v -> do
+    mStatus <- v .:? "status"
+
+    status <- maybe (pure Ignore) parseStatus mStatus
+
+    pure $ SingletonVariablesConfig status
+
+instance FromJSON CutUsageConfig where
+  parseJSON = withObject "CutUsageConfig" $ \v -> do
+    mStatus <- v .:? "status"
+
+    status <- maybe (pure Ignore) parseStatus mStatus
+
+    msg <- v .:? "additionalMessage"
+
+    when (status == Ignore && isJust msg) $
+      fail "additionalMessage is only allowed to exist when status is not 'ignore'"
+
+    pure $ CutUsageConfig (msg <$ status)
+
+instance FromJSON CodeAnalysisConfig where
+  parseJSON = withObject "CodeAnalysisConfig" $ \v ->
+    CodeAnalysisConfig
+      <$> v .:? "singletonVariables" .!= SingletonVariablesConfig Ignore
+      <*> v .:? "cutUsage" .!= CutUsageConfig Ignore
+
 instance FromJSON TaskConfig where
   parseJSON = withObject "TaskConfig" $ \v -> TaskConfig
     <$> v .:? "globalTimeout" .!= 10000
@@ -53,6 +96,7 @@ instance FromJSON TaskConfig where
     <*> v .:? "includeHiddenDefinitions" .!= Yes
     <*> v .:? "allowListPatternMatching" .!= True
     <*> v .:? "showSWISHButton" .!= False
+    <*> v .:? "codeAnalysis" .!= defaultCodeAnalysisConfig
     <*> v .:? "specifications" .!= []
 
 

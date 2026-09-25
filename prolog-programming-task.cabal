@@ -28,7 +28,12 @@ library
   exposed-modules:
       Prolog.Programming.Data
       Prolog.Programming.Task
+      Prolog.Programming.CodeAnalysis
+      Prolog.Programming.CodeAnalysis.Types
+      Prolog.Programming.CodeAnalysis.Config
   other-modules:
+      Prolog.Programming.CodeAnalysis.Rules.Cuts
+      Prolog.Programming.CodeAnalysis.Rules.SingletonVariables
       Prolog.Programming.ExampleConfig
       Prolog.Programming.Helper
       Prolog.Programming.Parser
@@ -49,6 +54,7 @@ library
     , prolog-graph-lib >=0.3.2
     , random-shuffle
     , raw-strings-qq
+    , syb >=0.3
     , text
     , wl-pprint-text
     , yaml
@@ -73,6 +79,7 @@ executable test-task-prolog
     , prolog-programming-task
     , random-shuffle
     , raw-strings-qq
+    , syb >=0.3
     , text
     , wl-pprint-text
     , yaml
@@ -82,10 +89,15 @@ test-suite prolog-programming-task-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      CodeAnalysis.Helper
+      CodeAnalysis.Rules.CutsSpec
+      CodeAnalysis.Rules.MixedSpec
+      CodeAnalysis.Rules.SingletonVariablesSpec
+      ExampleConfigSpec
       Paths_prolog_programming_task
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HUnit
     , MonadRandom
@@ -100,6 +112,7 @@ test-suite prolog-programming-task-test
     , prolog-programming-task
     , random-shuffle
     , raw-strings-qq
+    , syb >=0.3
     , text
     , wl-pprint-text
     , yaml
