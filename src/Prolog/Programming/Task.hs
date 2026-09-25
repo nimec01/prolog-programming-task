@@ -105,6 +105,16 @@ showSWISHButton (Config cfg) = displaySWISHButton
 orError :: Either a b -> String -> b
 orError x str = fromRight (error str) x
 
+{- Runs the following checks in this order:
+1. Does the program parse?
+2. Does program violate pattern matching of head/tail on lists
+3. Are all required predicates present?
+4. Do the task and hidden predicates parse?
+5. Is the specification fulfilled by program?
+6. Are there any code analysis detections?
+
+The procedure aborts once the first check fails.
+-}
 checkTask
   :: (MonadIO m, MonadRandom m)
   => (forall a . Doc -> m a)
