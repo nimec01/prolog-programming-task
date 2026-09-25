@@ -22,7 +22,7 @@ import Prolog.Programming.Helper (Arity, escalateCodeAnalysis, termHead)
 import Prolog.Programming.Parser
 import Prolog.Programming.TestRunner
 
-import Control.Monad (when)
+import Control.Monad (unless, when)
 import Control.Monad.Random.Class (MonadRandom)
 import Control.Monad.Trans (MonadIO (liftIO))
 
@@ -78,30 +78,17 @@ verifyConfig (Config cfg) =
   let solutionErrorDisplay err = fail $ "Failure during check of sample solution:\n" ++ show err
   in case parseConfig cfg of
        Left err -> fail $ show err
-       Right (taskCfg@(TaskConfig _ _ _ Yes _ True _ _), sol, preds@(_, hiddenFacts)) ->
-         case consultString hiddenFacts of
-           Left err -> fail $ show err
-           Right (_ : _) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
-           _ ->
-             if null sol
-               then pure ()
-               else
-                 checkTask'
-                   solutionErrorDisplay
-                   (const $ pure ())
-                   (const $ pure ())
-                   (escalateCodeAnalysis taskCfg, sol, preds)
-                   (Code sol)
-       Right (taskCfg, sol, preds) ->
-         if null sol
-           then pure ()
-           else
-             checkTask'
-               solutionErrorDisplay
-               (const $ pure ())
-               (const $ pure ())
-               (escalateCodeAnalysis taskCfg, sol, preds)
-               (Code sol)
+       Right (taskCfg@TaskConfig {..}, sol, predicates) -> do
+         when (includeHidden == Yes && displaySWISHButton) $
+           fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
+
+         unless (null sol) $
+           checkTask'
+             solutionErrorDisplay
+             (const $ pure ())
+             (const $ pure ())
+             (escalateCodeAnalysis taskCfg, sol, predicates)
+             (Code sol)
 
 describeTask :: Config -> Doc
 describeTask (Config cfg) =
@@ -328,8 +315,8 @@ explainReason = explainResult
       ( nested $
           line
             <> describeSpec x
-              <$$> resultMsg mActual
-            <> treeMsg mTree
+            <$$> resultMsg mActual
+              <> treeMsg mTree
       , mTree
       )
 

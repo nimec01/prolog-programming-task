@@ -13,6 +13,7 @@ type IncludeTask = Include ()
 type IncludeHidden = Include Void
 
 data Include a = Yes | Filtered | No a
+  deriving Eq
 
 type AllowListMatching = Bool
 
