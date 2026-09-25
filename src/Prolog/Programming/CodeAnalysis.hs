@@ -1,5 +1,4 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Prolog.Programming.CodeAnalysis
   ( checkForProblems,

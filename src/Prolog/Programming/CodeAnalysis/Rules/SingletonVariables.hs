@@ -1,6 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
-
 module Prolog.Programming.CodeAnalysis.Rules.SingletonVariables (singletonVariablesRule) where
 
 import Data.Generics (Data, everything, mkQ)
@@ -29,9 +26,9 @@ toProblem clause var =
     { problemClause = clause,
       problemDisplay =
         vsep
-          [ string "Your clause",
+          [ string $ pack "Your clause",
             indent 2 $ string $ pack $ show clause,
             string (pack $ "includes the singleton variable " ++ var ++ ".") <> linebreak,
-            string "You can safely replace it with a wildcard (_)."
+            string $ pack "You can safely replace it with a wildcard (_)."
           ]
     }
