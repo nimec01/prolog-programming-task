@@ -297,7 +297,8 @@ explainReason = explainResult
       (nested $ line <> describeSpec x, Nothing)
     explainResult (OnWrong x mTree mActual) =
       ( nested $
-          line <> describeSpec x
+          line
+            <> describeSpec x
             <$$> resultMsg mActual
               <> treeMsg mTree
       , mTree
@@ -397,7 +398,11 @@ reportMatch (WrongArity (desc, expectedAr) (tr, ar)) =
   text (pack $ "- " <> desc <> ":")
     <$$> indent
       4
-      ( text ("Trying to use your definition " <> pack (show tr) <> " but the predicate does not have the correct arity.")
+      ( text
+          ( "Trying to use your definition "
+              <> pack (show tr)
+              <> " but the predicate does not have the correct arity."
+          )
           <$$> text
             ( pack $
                 unwords
