@@ -106,12 +106,12 @@ orError :: Either a b -> String -> b
 orError x str = fromRight (error str) x
 
 {- Runs the following checks in this order:
+
 1. Does the program parse?
-2. Does program violate pattern matching of head/tail on lists
+2. Does the program respect a configured ban of head/tail pattern-matching on lists?
 3. Are all required predicates present?
-4. Do the task and hidden predicates parse?
-5. Is the specification fulfilled by program?
-6. Are there any code analysis detections?
+4. Is the specification (the tests) fulfilled by the program together with task and hidden predicates?
+5. Does the code analysis run through without rejections?
 
 The procedure aborts once the first check fails.
 -}
