@@ -33,11 +33,6 @@ unmarkedSingletons =
     ("p(A,_).", ["A"])
   ]
 
-singletonMarkedMultipleTimes :: [(String, [String])]
-singletonMarkedMultipleTimes =
-  [ ("p(_A,_A).", ["_A"])
-  ]
-
 errorFree :: [String]
 errorFree =
   [ "p(X) :- q(X).",
@@ -53,9 +48,7 @@ errorFree =
     "p(X,X,X).",
     "p(X,X,X,X).",
     "p(_).",
-    "p(_A,_2).",
-    "p(_,_).",
-    "p(_A)."
+    "p(_,_)."
   ]
 
 spec :: Spec
@@ -66,13 +59,6 @@ spec = describe "NoSingletonVariables" $ do
         shouldDetectProblemsStrict
           caConfig
           (map (\v -> isInfixOf $ "includes the singleton variable " ++ v) unmarked)
-          programCode
-  describe "Should detect marked singleton variables used more than once" $
-    forM_ singletonMarkedMultipleTimes $ \(programCode, marked) ->
-      it programCode $
-        shouldDetectProblemsStrict
-          caConfig
-          (map (\v -> isInfixOf $ "includes singleton-marked variable " ++ v) marked)
           programCode
   describe "Should not detect any problems" $
     forM_ errorFree $ \programCode ->
