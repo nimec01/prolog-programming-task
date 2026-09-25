@@ -18,7 +18,7 @@ module Prolog.Programming.Task (
 
 import Prolog.Programming.Data
 import Prolog.Programming.ExampleConfig
-import Prolog.Programming.Helper (Arity, termHead)
+import Prolog.Programming.Helper (Arity, escalateCodeAnalysis, termHead)
 import Prolog.Programming.Parser
 import Prolog.Programming.TestRunner
 
@@ -78,11 +78,24 @@ verifyConfig (Config cfg) =
   let solutionErrorDisplay err = fail $ "Failure during check of sample solution:\n" ++ show err
   in case parseConfig cfg of
        Left err -> fail $ show err
-       Right cfg'@(TaskConfig _ _ _ Yes _ True _ _, sol, (_, hiddenFacts)) -> case consultString hiddenFacts of
-         Left err -> fail $ show err
-         Right (_ : _) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
-         _ -> checkTask' solutionErrorDisplay (const $ pure ()) (const $ pure ()) cfg' (Code sol)
-       Right cfg'@(_, sol, _) -> checkTask' solutionErrorDisplay (const $ pure ()) (const $ pure ()) cfg' (Code sol)
+       Right (taskCfg@(TaskConfig _ _ _ Yes _ True _ _), sol, preds@(_, hiddenFacts)) ->
+         case consultString hiddenFacts of
+           Left err -> fail $ show err
+           Right (_ : _) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
+           _ ->
+             checkTask'
+               solutionErrorDisplay
+               (const $ pure ())
+               (const $ pure ())
+               (escalateCodeAnalysis taskCfg, sol, preds)
+               (Code sol)
+       Right (taskCfg, sol, preds) ->
+         checkTask'
+           solutionErrorDisplay
+           (const $ pure ())
+           (const $ pure ())
+           (escalateCodeAnalysis taskCfg, sol, preds)
+           (Code sol)
 
 describeTask :: Config -> Doc
 describeTask (Config cfg) =
@@ -309,8 +322,8 @@ explainReason = explainResult
       ( nested $
           line
             <> describeSpec x
-            <$$> resultMsg mActual
-              <> treeMsg mTree
+              <$$> resultMsg mActual
+            <> treeMsg mTree
       , mTree
       )
 

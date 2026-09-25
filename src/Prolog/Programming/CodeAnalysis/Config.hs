@@ -1,6 +1,7 @@
 module Prolog.Programming.CodeAnalysis.Config (
   configuredRules,
   defaultCodeAnalysisConfig,
+  escalateConfiguredRules,
 )
 where
 
@@ -12,6 +13,7 @@ import Prolog.Programming.CodeAnalysis.Types (
   CodeAnalysisRuleConfig (..),
   CutUsageConfig (..),
   Rule,
+  Severity (..),
   SingletonVariablesConfig (..),
   WithSeverity (..),
  )
@@ -37,3 +39,17 @@ defaultCodeAnalysisConfig =
     singletonVariables = SingletonVariablesConfig Ignore
     , cutUsage = CutUsageConfig Ignore
     }
+
+escalateConfiguredRules :: CodeAnalysisConfig -> CodeAnalysisConfig
+escalateConfiguredRules
+  CodeAnalysisConfig {
+    singletonVariables = SingletonVariablesConfig singletonVarsCfg
+    , cutUsage = CutUsageConfig cutsCfg
+    } =
+    CodeAnalysisConfig {
+      singletonVariables = SingletonVariablesConfig $ escalateCARule singletonVarsCfg
+      , cutUsage = CutUsageConfig $ escalateCARule cutsCfg
+      }
+    where
+      escalateCARule Ignore = Ignore
+      escalateCARule (Detect _ extra) = Detect Error extra
