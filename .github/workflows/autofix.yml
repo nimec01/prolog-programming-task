@@ -1,0 +1,31 @@
+---
+name: autofix.ci
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+
+permissions: read-all
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run fourmolu
+        uses: haskell-actions/run-fourmolu@v13
+        with:
+          version: "0.20.1.0"
+          # Types.hs is only excluded since there are currently issues with formatting. See https://github.com/fourmolu/fourmolu/issues/552
+          pattern: |
+            **/*.hs
+            !src/Prolog/Programming/CodeAnalysis/Types.hs
+          extra-args: "--mode inplace"
+
+      - uses: autofix-ci/action@c5b2d67aa2274e7b5a18224e8171550871fc7e4a
