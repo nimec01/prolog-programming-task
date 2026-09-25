@@ -7,14 +7,12 @@ module Prolog.Programming.Parser (
   parseSpec,
 ) where
 
-import Control.Arrow ((&&&), (>>>))
 import Control.Monad (void, when)
 
-import Data.List (isPrefixOf)
+import Data.List (isInfixOf, isPrefixOf)
 
 import Language.Prolog (Term, term, terms)
 
-import Data.Bifunctor (Bifunctor (..))
 import qualified Data.ByteString.Char8 as BS (pack)
 import Data.Maybe (isJust)
 import qualified Data.Text as T (unpack)
@@ -113,7 +111,7 @@ instance FromJSON TaskConfig where
       <*> v .:? "codeAnalysis" .!= defaultCodeAnalysisConfig
       <*> v .:? "specifications" .!= []
 
-parseConfig :: String -> Either ParseError (TaskConfig, (String, String))
+parseConfig :: String -> Either ParseError (TaskConfig, String, (String, String))
 parseConfig = parse (configuration <* eof) "(config)"
 
 configuration
@@ -121,16 +119,28 @@ configuration
        String
        ()
        ( TaskConfig
+       , String
        , (String, String)
        )
 configuration = do
   ls <- lines <$> anyChar `manyTill` eof
-  let (rawCfg, rest) = first unlines $ breakWhen ("---" `isPrefixOf`) ls
-  case decodeEither' (BS.pack rawCfg) of
-    Left err -> fail $ show err
-    Right taskCfg -> do
-      let predicates = bimap unlines unlines $ breakWhen ("---" `isPrefixOf`) rest
-      pure (taskCfg, predicates)
+  case breakWhen ("---" `isPrefixOf`) ls of
+    (rawCfgLs : taskLs : optionalLs) -> case decodeEither' (BS.pack $ unlines rawCfgLs) of
+      Left err -> fail $ show err
+      Right taskCfg -> do
+        (solution, hiddenPart) <- case optionalLs of
+          [a, b] -> case map unlines [a, b] of
+            [a', b']
+              | "% SOLUTION" `isInfixOf` a' -> pure (a', b')
+              | "% SOLUTION" `isInfixOf` b' -> pure (b', a')
+            _ -> fail "Unable to find solution from provided optional parts"
+          [a] -> let a' = unlines a in pure $ if "% SOLUTION" `isInfixOf` a' then (a', "") else ("", a')
+          xs
+            | null xs -> pure ("", "")
+            | otherwise -> fail "Provided more than two optional config parts"
+
+        pure (taskCfg, solution, (unlines taskLs, hiddenPart))
+    _ -> fail "Config does not include the two required parts"
 
 parseSpec :: Parsec String () Spec
 parseSpec = try newPredDeclParser <|> specLine
@@ -191,8 +201,13 @@ parseSpec = try newPredDeclParser <|> specLine
 defaultOptions :: Requirement -> Spec
 defaultOptions = Spec Visible DontShowTree PositiveResult GlobalTimeout
 
-breakWhen :: (a -> Bool) -> [a] -> ([a], [a])
-breakWhen p = (takeWhile (not . p) &&& dropWhile (not . p)) >>> second (drop 1)
+breakWhen :: (a -> Bool) -> [a] -> [[a]]
+breakWhen _ [] = []
+breakWhen p xs =
+  let (before, after) = break p xs
+  in before : case after of
+       [] -> []
+       (_ : xs') -> breakWhen p xs'
 
 queryWithAnswers :: [Term] -> [[Term]] -> Spec
 queryWithAnswers q as = defaultOptions $ QueryWithAnswers q as
