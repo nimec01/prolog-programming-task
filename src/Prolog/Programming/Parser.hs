@@ -8,17 +8,19 @@ module Prolog.Programming.Parser (
 ) where
 
 import Control.Arrow ((&&&), (>>>))
-import Control.Monad (void, when)
+import Control.Monad (unless, void, when)
 
-import Data.List (isPrefixOf)
+import Data.List (intercalate, isPrefixOf)
 
 import Language.Prolog (Term, term, terms)
 
+import Data.Aeson.Key (toString)
+import qualified Data.Aeson.KeyMap as KM (keys)
 import Data.Bifunctor (Bifunctor (..))
 import qualified Data.ByteString.Char8 as BS (pack)
 import Data.Maybe (isJust)
 import qualified Data.Text as T (unpack)
-import Data.Yaml (FromJSON (..), Value (..), decodeEither', withObject, (.!=), (.:?))
+import Data.Yaml (FromJSON (..), Object, Value (..), decodeEither', withObject, (.!=), (.:?))
 import Data.Yaml.Aeson (Parser)
 import Prolog.Programming.CodeAnalysis.Config (
   defaultCodeAnalysisConfig,
@@ -44,6 +46,14 @@ import Prolog.Programming.Types (
   Visualize (..),
  )
 import Text.Parsec
+
+rejectUnknownFields :: [String] -> Object -> Parser ()
+rejectUnknownFields known obj =
+  unless (null unknown)
+    $ fail
+    $ "Unknown fields: " ++ intercalate ", " unknown
+  where
+    unknown = filter (`notElem` known) $ map toString $ KM.keys obj
 
 instance FromJSON TreeStyle where
   parseJSON (String "query") = pure QueryStyle
@@ -76,6 +86,8 @@ parseStatus _ = fail "status must be one of: 'ignore', 'hint', 'warn', or 'rejec
 
 instance FromJSON SingletonVariablesConfig where
   parseJSON = withObject "SingletonVariablesConfig" $ \v -> do
+    rejectUnknownFields ["status"] v
+
     mStatus <- v .:? "status"
 
     status <- maybe (pure Ignore) parseStatus mStatus
@@ -84,6 +96,8 @@ instance FromJSON SingletonVariablesConfig where
 
 instance FromJSON CutUsageConfig where
   parseJSON = withObject "CutUsageConfig" $ \v -> do
+    rejectUnknownFields ["status", "additionalMessage"] v
+
     mStatus <- v .:? "status"
 
     status <- maybe (pure Ignore) parseStatus mStatus
@@ -96,13 +110,27 @@ instance FromJSON CutUsageConfig where
     pure $ CutUsageConfig (msg <$ status)
 
 instance FromJSON CodeAnalysisConfig where
-  parseJSON = withObject "CodeAnalysisConfig" $ \v ->
+  parseJSON = withObject "CodeAnalysisConfig" $ \v -> do
+    rejectUnknownFields ["singletonVariables", "cutUsage"] v
+
     CodeAnalysisConfig
       <$> v .:? "singletonVariables" .!= SingletonVariablesConfig Ignore
       <*> v .:? "cutUsage" .!= CutUsageConfig Ignore
 
 instance FromJSON TaskConfig where
-  parseJSON = withObject "TaskConfig" $ \v ->
+  parseJSON = withObject "TaskConfig" $ \v -> do
+    rejectUnknownFields
+      [ "globalTimeout"
+      , "treeStyle"
+      , "includeTaskDefinitions"
+      , "includeHiddenDefinitions"
+      , "allowListPatternMatching"
+      , "showSWISHButton"
+      , "codeAnalysis"
+      , "specifications"
+      ]
+      v
+
     TaskConfig
       <$> v .:? "globalTimeout" .!= 10000
       <*> v .:? "treeStyle" .!= QueryStyle
