@@ -7,6 +7,7 @@
 
 module Prolog.Programming.Task (
   checkSyntax,
+  checkSemantics,
   exampleConfig,
   verifyConfig,
   describeTask,
@@ -63,8 +64,10 @@ import Text.PrettyPrint.Leijen.Text (
   Doc,
   align,
   empty,
+  hsep,
   indent,
   line,
+  linebreak,
   nest,
   parens,
   text,
@@ -261,6 +264,24 @@ checkSyntax' reject inform drawPicture (TaskConfig {..}, _, (visible_facts, hidd
       case checkForProblems codeAnalysisConfig inProg of
         [] -> pure ()
         pbs -> either reject inform $ displayProblems pbs
+
+checkSemantics
+  :: (MonadIO m, MonadRandom m)
+  => (forall a. Doc -> m a)
+  -> (Doc -> m ())
+  -> Config
+  -> Code
+  -> m ()
+checkSemantics _ inform (Config cfg) _ = do
+  let (TaskConfig {}, sol, _) = parseConfig cfg `orError` "config should have been validated earlier"
+
+  unless (null sol)
+    $ inform
+    $ hsep
+      [ text (pack "A sample solution for this task is:") <> linebreak
+      , linebreak
+      , text $ pack sol
+      ]
 
 consultStringsAndFilter :: String -> (Clause -> Bool) -> String -> (Clause -> Bool) -> Either ParseError [Clause]
 consultStringsAndFilter visibleDefs keepVisible hiddenDefs keepHidden = do
