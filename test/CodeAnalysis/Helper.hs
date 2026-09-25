@@ -16,16 +16,14 @@ shouldDetectProblemsStrict cfg pts code = case consultString code of
   Right prog -> case checkForProblems cfg prog of
     [] -> assertFailure "No problems found"
     pbs
-      | length pbs /= length pts -> assertFailure "More or less problems found than provided"
+      | length pbs /= length pts ->
+          assertFailure $ "Found " ++ show (length pbs) ++ " instead of " ++ show (length pts) ++ " problems."
       | all (\t -> any (t . show . problemDisplay . value) pbs) pts -> pure ()
       | otherwise -> assertFailure "Found problems that does not match"
 
-shouldNotDetectProblems :: CodeAnalysisConfig -> [String -> Bool] -> String -> Expectation
-shouldNotDetectProblems cfg pts code = case consultString code of
+shouldNotHaveProblems :: CodeAnalysisConfig -> String -> Expectation
+shouldNotHaveProblems cfg code = case consultString code of
   Left err -> assertFailure $ "Failed to parse prolog program:\n" ++ show err
   Right prog -> case checkForProblems cfg prog of
     [] -> pure ()
-    pbs
-      | any (\t -> any (t . show . problemDisplay . value) pbs) pts ->
-          assertFailure "Detected problem that should not occur"
-      | otherwise -> pure ()
+    _ -> assertFailure "Detected problem(s) even though they should not exist."

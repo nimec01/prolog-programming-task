@@ -1,6 +1,7 @@
 module CodeAnalysis.Rules.CutsSpec where
 
-import CodeAnalysis.Helper (shouldDetectProblemsStrict, shouldNotDetectProblems)
+import CodeAnalysis.Helper (shouldDetectProblemsStrict, shouldNotHaveProblems)
+import Control.Monad (forM_)
 import Data.List (isInfixOf)
 import Prolog.Programming.CodeAnalysis.Types
   ( CodeAnalysisConfig (..),
@@ -9,7 +10,7 @@ import Prolog.Programming.CodeAnalysis.Types
     Severity (..),
     SingletonVariablesConfig (..),
   )
-import Test.Hspec (Expectation, Spec, describe, it)
+import Test.Hspec (Spec, describe, it)
 
 caConfig :: Maybe String -> CodeAnalysisConfig
 caConfig cMsg =
@@ -20,28 +21,34 @@ caConfig cMsg =
         CutUsageConfig $ Detect Error cMsg
     }
 
-detect :: String -> Bool
-detect = isInfixOf "makes use of the cut (!) operator"
+hasCut :: [String]
+hasCut =
+  [ "p(X) :- q(X), !.",
+    "p(X) :- a(X), (b(X), ! ; c(X))."
+  ]
 
-detectsProblem :: String -> Expectation
-detectsProblem = shouldDetectProblemsStrict (caConfig Nothing) [detect]
-
-doesNotDetectProblem :: String -> Expectation
-doesNotDetectProblem = shouldNotDetectProblems (caConfig Nothing) [detect]
+errorFree :: [String]
+errorFree =
+  [ "p(X,Y) :- q(X,Y)."
+  ]
 
 spec :: Spec
-spec = describe "Cuts" $ do
-  it "detects problem on example 1" $
-    detectsProblem "p(X) :- q(X), !."
-
-  it "doesn't detect problem on example 2" $
-    doesNotDetectProblem "p(X,Y) :- q(X,Y)."
-
-  it "detects problem on example 4" $
-    detectsProblem "p(X) :- a(X), (b(X), ! ; c(X))."
-
-  it "detect problem with additional message" $
+spec = describe "NoSingletonVariables" $ do
+  describe "Should detect usage of cut" $
+    forM_ hasCut $ \programCode ->
+      it programCode $
+        shouldDetectProblemsStrict
+          (caConfig Nothing)
+          [isInfixOf "makes use of the cut (!) operator"]
+          programCode
+  describe "Should not detect any problems" $
+    forM_ errorFree $ \programCode ->
+      it programCode $
+        shouldNotHaveProblems
+          (caConfig Nothing)
+          programCode
+  it "should provide additional message when configured" $
     shouldDetectProblemsStrict
       (caConfig $ Just "We have not introduced this operator yet.")
       [isInfixOf "We have not introduced this operator yet."]
-      "p(X) :- q(X), !."
+      (head hasCut)
