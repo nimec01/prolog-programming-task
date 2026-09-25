@@ -83,19 +83,25 @@ verifyConfig (Config cfg) =
            Left err -> fail $ show err
            Right (_ : _) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
            _ ->
+             if null sol
+               then pure ()
+               else
+                 checkTask'
+                   solutionErrorDisplay
+                   (const $ pure ())
+                   (const $ pure ())
+                   (escalateCodeAnalysis taskCfg, sol, preds)
+                   (Code sol)
+       Right (taskCfg, sol, preds) ->
+         if null sol
+           then pure ()
+           else
              checkTask'
                solutionErrorDisplay
                (const $ pure ())
                (const $ pure ())
                (escalateCodeAnalysis taskCfg, sol, preds)
                (Code sol)
-       Right (taskCfg, sol, preds) ->
-         checkTask'
-           solutionErrorDisplay
-           (const $ pure ())
-           (const $ pure ())
-           (escalateCodeAnalysis taskCfg, sol, preds)
-           (Code sol)
 
 describeTask :: Config -> Doc
 describeTask (Config cfg) =
