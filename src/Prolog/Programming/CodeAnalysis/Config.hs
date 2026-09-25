@@ -1,30 +1,30 @@
-module Prolog.Programming.CodeAnalysis.Config
-  ( configuredRules,
-    defaultCodeAnalysisConfig,
-  )
+module Prolog.Programming.CodeAnalysis.Config (
+  configuredRules,
+  defaultCodeAnalysisConfig,
+)
 where
 
 import Data.Maybe (catMaybes)
 import Prolog.Programming.CodeAnalysis.Rules.Cuts (cutsRule)
 import Prolog.Programming.CodeAnalysis.Rules.SingletonVariables (singletonVariablesRule)
-import Prolog.Programming.CodeAnalysis.Types
-  ( CodeAnalysisConfig (..),
-    CodeAnalysisRuleConfig (..),
-    CutUsageConfig (..),
-    Rule,
-    SingletonVariablesConfig (..),
-    WithSeverity (..),
-  )
+import Prolog.Programming.CodeAnalysis.Types (
+  CodeAnalysisConfig (..),
+  CodeAnalysisRuleConfig (..),
+  CutUsageConfig (..),
+  Rule,
+  SingletonVariablesConfig (..),
+  WithSeverity (..),
+ )
 
 configuredRules :: CodeAnalysisConfig -> [WithSeverity Rule]
 configuredRules
-  CodeAnalysisConfig
-    { singletonVariables = SingletonVariablesConfig singletonVarsCfg,
-      cutUsage = CutUsageConfig cutsCfg
+  CodeAnalysisConfig {
+    singletonVariables = SingletonVariablesConfig singletonVarsCfg
+    , cutUsage = CutUsageConfig cutsCfg
     } =
     catMaybes
-      [ toConfigured singletonVarsCfg (const singletonVariablesRule),
-        toConfigured cutsCfg cutsRule
+      [ toConfigured singletonVarsCfg (const singletonVariablesRule)
+      , toConfigured cutsCfg cutsRule
       ]
     where
       toConfigured :: CodeAnalysisRuleConfig a -> (a -> Rule) -> Maybe (WithSeverity Rule)
@@ -33,7 +33,7 @@ configuredRules
 
 defaultCodeAnalysisConfig :: CodeAnalysisConfig
 defaultCodeAnalysisConfig =
-  CodeAnalysisConfig
-    { singletonVariables = SingletonVariablesConfig Ignore,
-      cutUsage = CutUsageConfig Ignore
+  CodeAnalysisConfig {
+    singletonVariables = SingletonVariablesConfig Ignore
+    , cutUsage = CutUsageConfig Ignore
     }

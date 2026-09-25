@@ -19,20 +19,20 @@ cutExistsInClause :: Clause -> Bool
 cutExistsInClause (Clause _ rhs) = any containsCut rhs
 cutExistsInClause _ = False
 
-containsCut :: (Data a) => a -> Bool
+containsCut :: Data a => a -> Bool
 containsCut = everything (||) $ mkQ False $ \case
   Cut _ -> True
   _ -> False
 
 toProblem :: Maybe String -> Clause -> Problem
 toProblem cMsg clause =
-  Problem
-    { problemClause = clause,
-      problemDisplay =
+  Problem {
+    problemClause = clause
+    , problemDisplay =
         vsep
-          [ string "Your clause",
-            indent 2 $ string $ pack $ show clause,
-            string "makes use of the cut (!) operator." <> linebreak,
-            maybe empty (string . pack) cMsg
+          [ string "Your clause"
+          , indent 2 $ string $ pack $ show clause
+          , string "makes use of the cut (!) operator." <> linebreak
+          , maybe empty (string . pack) cMsg
           ]
     }

@@ -4,12 +4,13 @@
 {-# LANGUAGE DerivingStrategies #-}
 #endif
 {-# LANGUAGE DeriveGeneric #-}
+
 module Prolog.Programming.Data where
 
 #if !MIN_VERSION_base(4,18,0)
 import Data.Typeable                    (Typeable)
 #endif
-import GHC.Generics                     (Generic)
+import GHC.Generics (Generic)
 
 newtype Code = Code String
   deriving (Eq, Generic, Ord, Read, Show)

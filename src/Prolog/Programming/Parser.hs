@@ -1,36 +1,49 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+
 module Prolog.Programming.Parser (
   parseConfig,
-  parseSpec
-  ) where
+  parseSpec,
+) where
 
-import Control.Monad                    (void, when)
-import Control.Arrow                    ((>>>), (&&&))
+import Control.Arrow ((&&&), (>>>))
+import Control.Monad (void, when)
 
-import Data.List                        (isPrefixOf)
+import Data.List (isPrefixOf)
 
-import Language.Prolog                  (terms, term, Term)
+import Language.Prolog (Term, term, terms)
 
-import Text.Parsec
-import Prolog.Programming.Types (TaskConfig (..), Spec (..), TreeStyle (..), Include (..),
-  IncludeTask, IncludeHidden, Visibility (..), Visualize (..),
-  Requirement (..), Expection (..), Timeout (..)
-  )
-import Data.Yaml (decodeEither', FromJSON (..), Value (..), withObject, (.:?), (.!=))
+import Data.Bifunctor (Bifunctor (..))
 import qualified Data.ByteString.Char8 as BS (pack)
-import qualified Data.Text as T (unpack)
-import Data.Bifunctor (Bifunctor(..))
-import Prolog.Programming.CodeAnalysis.Config (
-  defaultCodeAnalysisConfig
-  )
-import Prolog.Programming.CodeAnalysis.Types (
-  CodeAnalysisConfig (..), SingletonVariablesConfig (..), CutUsageConfig (..), CodeAnalysisRuleConfig (..)
-  )
-import qualified Prolog.Programming.CodeAnalysis.Types as CA (Severity(..))
-import Data.Yaml.Aeson (Parser)
 import Data.Maybe (isJust)
+import qualified Data.Text as T (unpack)
+import Data.Yaml (FromJSON (..), Value (..), decodeEither', withObject, (.!=), (.:?))
+import Data.Yaml.Aeson (Parser)
+import Prolog.Programming.CodeAnalysis.Config (
+  defaultCodeAnalysisConfig,
+ )
+import Prolog.Programming.CodeAnalysis.Types (
+  CodeAnalysisConfig (..),
+  CodeAnalysisRuleConfig (..),
+  CutUsageConfig (..),
+  SingletonVariablesConfig (..),
+ )
+import qualified Prolog.Programming.CodeAnalysis.Types as CA (Severity (..))
+import Prolog.Programming.Types (
+  Expection (..),
+  Include (..),
+  IncludeHidden,
+  IncludeTask,
+  Requirement (..),
+  Spec (..),
+  TaskConfig (..),
+  Timeout (..),
+  TreeStyle (..),
+  Visibility (..),
+  Visualize (..),
+ )
+import Text.Parsec
 
 instance FromJSON TreeStyle where
   parseJSON (String "query") = pure QueryStyle
@@ -89,27 +102,27 @@ instance FromJSON CodeAnalysisConfig where
       <*> v .:? "cutUsage" .!= CutUsageConfig Ignore
 
 instance FromJSON TaskConfig where
-  parseJSON = withObject "TaskConfig" $ \v -> TaskConfig
-    <$> v .:? "globalTimeout" .!= 10000
-    <*> v .:? "treeStyle" .!= QueryStyle
-    <*> v .:? "includeTaskDefinitions" .!= Yes
-    <*> v .:? "includeHiddenDefinitions" .!= Yes
-    <*> v .:? "allowListPatternMatching" .!= True
-    <*> v .:? "showSWISHButton" .!= False
-    <*> v .:? "codeAnalysis" .!= defaultCodeAnalysisConfig
-    <*> v .:? "specifications" .!= []
-
+  parseJSON = withObject "TaskConfig" $ \v ->
+    TaskConfig
+      <$> v .:? "globalTimeout" .!= 10000
+      <*> v .:? "treeStyle" .!= QueryStyle
+      <*> v .:? "includeTaskDefinitions" .!= Yes
+      <*> v .:? "includeHiddenDefinitions" .!= Yes
+      <*> v .:? "allowListPatternMatching" .!= True
+      <*> v .:? "showSWISHButton" .!= False
+      <*> v .:? "codeAnalysis" .!= defaultCodeAnalysisConfig
+      <*> v .:? "specifications" .!= []
 
 parseConfig :: String -> Either ParseError (TaskConfig, (String, String))
 parseConfig = parse (configuration <* eof) "(config)"
 
-configuration ::
-  Parsec
-    String
-    ()
-    ( TaskConfig,
-      (String, String)
-    )
+configuration
+  :: Parsec
+       String
+       ()
+       ( TaskConfig
+       , (String, String)
+       )
 configuration = do
   ls <- lines <$> anyChar `manyTill` eof
   let (rawCfg, rest) = first unlines $ breakWhen ("---" `isPrefixOf`) ls
@@ -117,49 +130,60 @@ configuration = do
     Left err -> fail $ show err
     Right taskCfg -> do
       let predicates = bimap unlines unlines $ breakWhen ("---" `isPrefixOf`) rest
-      pure (taskCfg,predicates)
-
+      pure (taskCfg, predicates)
 
 parseSpec :: Parsec String () Spec
 parseSpec = try newPredDeclParser <|> specLine
   where
-    specLine = ((\f g h i -> f . g . h . i)
-                  <$> localTimeoutAnn
-                  <*> negativeFlag
-                  <*> withTreeFlag
-                  <*> hiddenFlag) <*> do
-        spaces
-        q <- terms
-        (do char ':' >> optional (char ' ')
-            queryWithAnswers q . map (:[]) <$> terms)
-         <|> pure (statementToCheck q)
+    specLine =
+      ( (\f g h i -> f . g . h . i)
+          <$> localTimeoutAnn
+          <*> negativeFlag
+          <*> withTreeFlag
+          <*> hiddenFlag
+      )
+        <*> do
+          spaces
+          q <- terms
+          ( do
+              char ':' >> optional (char ' ')
+              queryWithAnswers q . map (: []) <$> terms
+            )
+            <|> pure (statementToCheck q)
 
     newPredDeclParser = do
-        void $ string "new"
-        spaces
-        t <- term
-        spaces
-        void $ char ':'
-        spaces
-        desc <- many1 anyChar
-        pure $ newPredDecl t desc
+      void $ string "new"
+      spaces
+      t <- term
+      spaces
+      void $ char ':'
+      spaces
+      desc <- many1 anyChar
+      pure $ newPredDecl t desc
 
-    localTimeoutAnn = option id $
-      localTimeout . read
-      <$> between (char '[') (char ']') (many1 digit) <* spaces
+    localTimeoutAnn =
+      option id $
+        localTimeout . read
+          <$> between (char '[') (char ']') (many1 digit)
+          <* spaces
 
     negativeFlag = option id $ negative <$ char '-'
 
-    hiddenFlag   = option id $
-      char '!' >> hidden
-      <$> option "" (try (between (char '(') (char ')') description))
+    hiddenFlag =
+      option id $
+        char '!'
+          >> hidden
+            <$> option "" (try (between (char '(') (char ')') description))
 
-    withTreeFlag = option id $ (char '@' >> return withTree)
-                           <|> (char '#' >> return withTreeNegative)
+    withTreeFlag =
+      option id $
+        (char '@' >> return withTree)
+          <|> (char '#' >> return withTreeNegative)
 
-    description = try (between (char '"') (char '"') (descriptionMsg "\""))
-      <|> try (between (char '\'') (char '\'') (descriptionMsg "'"))
-      <|> descriptionMsg ")"
+    description =
+      try (between (char '"') (char '"') (descriptionMsg "\""))
+        <|> try (between (char '\'') (char '\'') (descriptionMsg "'"))
+        <|> descriptionMsg ")"
 
     descriptionMsg :: String -> Parsec String () String
     descriptionMsg end = many (noneOf end)
@@ -167,20 +191,20 @@ parseSpec = try newPredDeclParser <|> specLine
 defaultOptions :: Requirement -> Spec
 defaultOptions = Spec Visible DontShowTree PositiveResult GlobalTimeout
 
-breakWhen :: (a -> Bool) -> [a] -> ([a],[a])
+breakWhen :: (a -> Bool) -> [a] -> ([a], [a])
 breakWhen p = (takeWhile (not . p) &&& dropWhile (not . p)) >>> second (drop 1)
 
 queryWithAnswers :: [Term] -> [[Term]] -> Spec
-queryWithAnswers q as =  defaultOptions $ QueryWithAnswers q as
+queryWithAnswers q as = defaultOptions $ QueryWithAnswers q as
 
 statementToCheck :: [Term] -> Spec
 statementToCheck ts = defaultOptions $ StatementToCheck ts
 
 hidden :: String -> Spec -> Spec
-hidden s spec = spec { specVisibility = Hidden s }
+hidden s spec = spec {specVisibility = Hidden s}
 
 withTree :: Spec -> Spec
-withTree spec = spec { specVisualize = ShowTree}
+withTree spec = spec {specVisualize = ShowTree}
 
 withTreeNegative :: Spec -> Spec
 withTreeNegative = negative . withTree
@@ -189,7 +213,7 @@ newPredDecl :: Term -> String -> Spec
 newPredDecl t s = defaultOptions $ NewPredDecl t s
 
 negative :: Spec -> Spec
-negative spec = spec { specExpection = NegativeResult}
+negative spec = spec {specExpection = NegativeResult}
 
 localTimeout :: Int -> Spec -> Spec
 localTimeout d spec = spec {specTimeout = LocalTimeout d}

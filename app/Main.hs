@@ -6,8 +6,8 @@ import System.Environment (getArgs)
 
 import Text.PrettyPrint.Leijen.Text ()
 
+import Prolog.Programming.Data (Code (..), Config (..))
 import Prolog.Programming.Task
-import Prolog.Programming.Data (Config(..),Code(..))
 
 main :: IO ()
 main = do

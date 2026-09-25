@@ -9,6 +9,7 @@ dcg
 fmap
 foldl
 foldr
+fourmolu
 fst
 GHC
 hsep

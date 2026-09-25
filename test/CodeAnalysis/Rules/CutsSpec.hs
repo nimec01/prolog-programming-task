@@ -3,28 +3,28 @@ module CodeAnalysis.Rules.CutsSpec where
 import CodeAnalysis.Helper (shouldDetectProblemsStrict, shouldNotHaveProblems)
 import Control.Monad (forM_)
 import Data.List (isInfixOf)
-import Prolog.Programming.CodeAnalysis.Types
-  ( CodeAnalysisConfig (..),
-    CodeAnalysisRuleConfig (..),
-    CutUsageConfig (..),
-    Severity (..),
-    SingletonVariablesConfig (..),
-  )
+import Prolog.Programming.CodeAnalysis.Types (
+  CodeAnalysisConfig (..),
+  CodeAnalysisRuleConfig (..),
+  CutUsageConfig (..),
+  Severity (..),
+  SingletonVariablesConfig (..),
+ )
 import Test.Hspec (Spec, describe, it)
 
 caConfig :: Maybe String -> CodeAnalysisConfig
 caConfig cMsg =
-  CodeAnalysisConfig
-    { singletonVariables =
-        SingletonVariablesConfig Ignore,
-      cutUsage =
+  CodeAnalysisConfig {
+    singletonVariables =
+      SingletonVariablesConfig Ignore
+    , cutUsage =
         CutUsageConfig $ Detect Error cMsg
     }
 
 hasCut :: [String]
 hasCut =
-  [ "p(X) :- q(X), !.",
-    "p(X) :- a(X), (b(X), ! ; c(X))."
+  [ "p(X) :- q(X), !."
+  , "p(X) :- a(X), (b(X), ! ; c(X))."
   ]
 
 errorFree :: [String]
