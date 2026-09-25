@@ -38,7 +38,7 @@ treeStyle: query
 specifications:
   - 'a_predicate(Foo,Bar): a_predicate(expected_foo1,expected_bar1), a_predicate(expected_foo2,expected_bar2)'
   - 'a_statement_that_has_to_be_true'
-  - '!a_predicate_whose_answers_are_hidden(Foo,Bar): a_predicate(expected_foo1,expected_bar1), a_predicate(expected_foo2,expected_bar2)'
+  - '!a_predicate_whose_answers_are_hidden(Foo,Bar): a_predicate_whose_answers_are_hidden(expected_foo1,expected_bar1), a_predicate_whose_answers_are_hidden(expected_foo2,expected_bar2)'
   - '!a_hidden_statement_that_has_to_be_true'
   - '!(<description>) a_hidden_statement_that_has_to_be_true_with_a_description_shown_on_failure'
   - '@a_test_with_resolution_tree(X)' # Only shown if test fails.
@@ -67,7 +67,7 @@ specifications:
 #     # additionalMessage: "We didn't introduce this operator yet."
 #     # This field is only allowed to appear when status is not set to 'ignore', and even otherwise it is optional.
 ------------------------------
-/* Everything from here on (up to an optional hidden section separated by a line of 3 or more dashes)
+/* Everything in this part
  * will be part of the visible exercise description.
  *
  * You can add as many tests as you like, but keep Autotool's time limit in mind. Additionally, every test has its own time limit,
@@ -83,6 +83,28 @@ a_test_with_resolution_tree(right_branch) :- fail. % See test line 5
 /*
  * The program text will be concatenated with whatever the student submits (subject to include settings).
  */
+------------------------------
+% SOLUTION
+/* This is the sample solution shown to students after deadline.
+ * This field is currently optional but will be required in the future.
+ * The provided solution needs to pass all tests specified in the first section of the config.
+ * It will be verified on upload.
+ *
+ * The solution part needs to include this exact comment on a single line to be detected: '% SOLUTION'.
+ * This comment will be stripped before showing it to the student.
+ * Other comments will be preserved.
+ */
+p(_).
+a_predicate(expected_foo1,expected_bar1).
+a_predicate(expected_foo2,expected_bar2).
+a_predicate_whose_answers_are_hidden(expected_foo1,expected_bar1).
+a_predicate_whose_answers_are_hidden(expected_foo2,expected_bar2).
+a_hidden_statement_that_has_to_be_true_with_a_description_shown_on_failure.
+
+a_hidden_statement_that_has_to_be_true.
+a_statement_that_has_to_be_false :- false.
+a_statement_that_has_to_be_true.
+a_test_with_resolution_tree(foo).
 ------------------------------
 /*
  * This is also part of the program, but is not presented to the student.
