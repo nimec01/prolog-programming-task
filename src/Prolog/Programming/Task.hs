@@ -1,10 +1,10 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# HLINT ignore "Use unless" #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE RecordWildCards #-}
 module Prolog.Programming.Task (
   checkTask,
   exampleConfig,
@@ -18,89 +18,121 @@ module Prolog.Programming.Task (
 
 import Prolog.Programming.Data
 import Prolog.Programming.ExampleConfig
-import Prolog.Programming.Helper        (termHead, Arity)
+import Prolog.Programming.Helper (Arity, termHead)
 import Prolog.Programming.Parser
 import Prolog.Programming.TestRunner
 
-import Control.Monad                    (when)
-import Control.Monad.Random.Class       (MonadRandom)
-import Control.Monad.Trans              (MonadIO (liftIO))
+import Control.Monad (when)
+import Control.Monad.Random.Class (MonadRandom)
+import Control.Monad.Trans (MonadIO (liftIO))
 
-import Data.ByteString                  (ByteString)
-import Data.Either                      (fromRight)
-import Data.List                        (intercalate, nub)
-import Data.List.NonEmpty               (NonEmpty(..))
-import Data.Maybe                       (mapMaybe)
-import Data.Text.Lazy                   (pack)
-import Data.Void                        (absurd)
+import Data.ByteString (ByteString)
+import Data.Either (fromRight)
+import Data.List (intercalate, nub)
+import Data.List.NonEmpty (NonEmpty (..))
+import Data.Maybe (mapMaybe)
+import Data.Text.Lazy (pack)
+import Data.Void (absurd)
 
-import Language.Prolog                  (
-  Atom, Clause (..), Program, Term (..), Unifier, consultString, lhs,
-  )
+import Language.Prolog (
+  Atom,
+  Clause (..),
+  Program,
+  Term (..),
+  Unifier,
+  consultString,
+  lhs,
+ )
 import Language.Prolog.GraphViz (Graph, asInlineSvgWith)
 import Language.Prolog.GraphViz.Formatting (GraphFormatting, queryStyle, resolutionStyle)
 
-import Text.Parsec (ParseError)
-import Text.PrettyPrint.Leijen.Text (
-  Doc, (<+>), nest, parens, text, vcat, empty, line, align, (<$$>), indent,
-  )
 import Prolog.Programming.CodeAnalysis (checkForProblems, displayProblems)
 import Prolog.Programming.Types (
-  TaskConfig(..), Include (..), Spec (..), Requirement (..), IncludeTask, IncludeHidden,
-  Visibility (..), Expection (..), TreeStyle (..)
-  )
+  Expection (..),
+  Include (..),
+  IncludeHidden,
+  IncludeTask,
+  Requirement (..),
+  Spec (..),
+  TaskConfig (..),
+  TreeStyle (..),
+  Visibility (..),
+ )
+import Text.Parsec (ParseError)
+import Text.PrettyPrint.Leijen.Text (
+  Doc,
+  align,
+  empty,
+  indent,
+  line,
+  nest,
+  parens,
+  text,
+  vcat,
+  (<$$>),
+  (<+>),
+ )
 
 verifyConfig :: MonadFail m => Config -> m ()
 verifyConfig (Config cfg) =
   case parseConfig cfg of
     Left err -> fail $ show err
-    Right (TaskConfig _ _ _ Yes _  True _ _, (_,hiddenFacts)) -> case consultString hiddenFacts of
-        Left err -> fail $ show err
-        Right (_:_) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
-        _ -> pure ()
+    Right (TaskConfig _ _ _ Yes _ True _ _, (_, hiddenFacts)) -> case consultString hiddenFacts of
+      Left err -> fail $ show err
+      Right (_ : _) -> fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
+      _ -> pure ()
     _ -> pure ()
 
 describeTask :: Config -> Doc
-describeTask (Config cfg) = text . pack $ either
-  (const "Error in task configuration!")
-  (\(TaskConfig{},(visible_facts,_)) -> visible_facts)
-  (parseConfig cfg)
+describeTask (Config cfg) =
+  text . pack $
+    either
+      (const "Error in task configuration!")
+      (\(TaskConfig {}, (visible_facts, _)) -> visible_facts)
+      (parseConfig cfg)
 
 initialTask :: Config -> Code
-initialTask (Config cfg) = Code $
-  if null newDecls then "" else
-    foldr (\desc s ->
-             "% Define predicate for '" ++ desc
-             ++ "' below this line\n \n\n" ++ s)
-      "% Any additional definitions can go below this line"
-      newDecls
+initialTask (Config cfg) =
+  Code $
+    if null newDecls
+      then ""
+      else
+        foldr
+          ( \desc s ->
+              "% Define predicate for '"
+                ++ desc
+                ++ "' below this line\n \n\n"
+                ++ s
+          )
+          "% Any additional definitions can go below this line"
+          newDecls
   where
-    (TaskConfig{..},_) = parseConfig cfg `orError` "config should have been validated earlier"
+    (TaskConfig {..}, _) = parseConfig cfg `orError` "config should have been validated earlier"
     newDecls = mapMaybe (\(Spec _ _ _ _ r) -> newPredDesc r) specifications
     newPredDesc (NewPredDecl _ desc) = Just desc
-    newPredDesc StatementToCheck{} = Nothing
-    newPredDesc QueryWithAnswers{} = Nothing
+    newPredDesc StatementToCheck {} = Nothing
+    newPredDesc QueryWithAnswers {} = Nothing
 
 taskDefinitions :: Config -> Either ParseError [Clause]
 taskDefinitions (Config cfg) =
   case parseConfig cfg of
-    Left err       -> Left err
-    Right (TaskConfig{}, (visibleFacts, _)) ->
+    Left err -> Left err
+    Right (TaskConfig {}, (visibleFacts, _)) ->
       consultString visibleFacts
 
 taskDefinitionsIncluded :: Config -> Bool
 taskDefinitionsIncluded (Config cfg) =
   case parseConfig cfg of
-    Left _         -> False
+    Left _ -> False
     Right (TaskConfig {..}, _) -> case includeTask of
-      Yes      -> True
+      Yes -> True
       Filtered -> True
-      No ()     -> False
+      No () -> False
 
 showSWISHButton :: Config -> Bool
 showSWISHButton (Config cfg) = displaySWISHButton
   where
-    (TaskConfig{..},_) = parseConfig cfg `orError` "config should have been validated earlier"
+    (TaskConfig {..}, _) = parseConfig cfg `orError` "config should have been validated earlier"
 
 orError :: Either a b -> String -> b
 orError x str = fromRight (error str) x
@@ -117,23 +149,23 @@ The procedure aborts once the first check fails.
 -}
 checkTask
   :: (MonadIO m, MonadRandom m)
-  => (forall a . Doc -> m a)
+  => (forall a. Doc -> m a)
   -> (Doc -> m ())
   -> (ByteString -> m ())
   -> Config
   -> Code
   -> m ()
 checkTask reject inform drawPicture (Config cfg) (Code input) = do
-  let (TaskConfig{..},(visible_facts,hidden_facts))
-        = parseConfig cfg `orError` "config should have been validated earlier"
-      drawTree tree = do
-        svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
-        drawPicture svg
+  let
+    (TaskConfig {..}, (visible_facts, hidden_facts)) =
+      parseConfig cfg `orError` "config should have been validated earlier"
+    drawTree tree = do
+      svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
+      drawPicture svg
 
   case consultString input of
     Left err -> reject . text . pack $ show err
     Right inProg -> do
-
       when (not allowListMatching) $
         case containsHeadTailPattern inProg of
           Nothing -> pure ()
@@ -141,16 +173,15 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
 
       newDefs <- case findNewPredicateDefs specifications inProg of
         (matchReport, Nothing) -> do
-          let
-            errMsg =
-              text "Error while looking for required predicates."
-              <$$> text "Using the following definitions for required predicates:"
-              <$$> matchReport
+          let errMsg =
+                text "Error while looking for required predicates."
+                  <$$> text "Using the following definitions for required predicates:"
+                  <$$> matchReport
           [] <$ reject errMsg
         (matchReport, Just newDefs) -> do
-          when (requiresNewPredicates specifications) $
-            inform $
-              text "Using the following definitions for required predicates:"
+          when (requiresNewPredicates specifications)
+            $ inform
+            $ text "Using the following definitions for required predicates:"
               <$$> matchReport
           pure newDefs
 
@@ -158,44 +189,58 @@ checkTask reject inform drawPicture (Config cfg) (Code input) = do
         visible_facts
         (taskFilter includeTask inProg)
         hidden_facts
-        (hiddenFilter includeHidden inProg)
-       of
+        (hiddenFilter includeHidden inProg) of
         Left err -> reject . text . pack $ show err
         Right factProg -> do
           testResult <- liftIO $ testRunner globalTimeout factProg inProg specifications newDefs
           case testResult of
-            (Finished AllOk,(passed,_)) ->
-              inform $ vcat
-                [ text "Ok"
-                , text (pack $ unwords [show passed, plural passed "test was" "tests were", "run"])
-                ]
-            (Finished (SomeTimeouts (t :| ts)),(passed,_)) -> do
+            (Finished AllOk, (passed, _)) ->
+              inform $
+                vcat
+                  [ text "Ok"
+                  , text (pack $ unwords [show passed, plural passed "test was" "tests were", "run"])
+                  ]
+            (Finished (SomeTimeouts (t :| ts)), (passed, _)) -> do
               let testsRun = passed + 1 + length ts
-              reject $ vcat
-                [ text "No."
-                , text (pack $ unwords [show testsRun, plural testsRun "test was" "tests were", "run"])
-                ] <> nested
-                  (line <> describeSpec t
-                    <> nested (line <> text "*it appears to be non-terminating* (test case timeout)")
-                    <> line <> if not (null ts)
-                      then text (pack $
-                        show (length ts) ++ " additional test "
-                          ++ plural (length ts) "case" "cases"++" also timed out")
-                      else empty
-                  )
-            (Aborted reason,(passed,notRun)) -> do
-              let (reasonDoc,mTree) = explainReason reason
-              inform $ vcat
-                [ text "No."
-                , text (pack $ unwords [show (passed+1), plural (passed+1) "test was" "tests were", "run"])
-                , text "The following test case failed:"
-                ] <> reasonDoc
+              reject $
+                vcat
+                  [ text "No."
+                  , text (pack $ unwords [show testsRun, plural testsRun "test was" "tests were", "run"])
+                  ]
+                  <> nested
+                    ( line
+                        <> describeSpec t
+                        <> nested (line <> text "*it appears to be non-terminating* (test case timeout)")
+                        <> line
+                        <> if not (null ts)
+                          then
+                            text
+                              ( pack $
+                                  show (length ts)
+                                    ++ " additional test "
+                                    ++ plural (length ts) "case" "cases"
+                                    ++ " also timed out"
+                              )
+                          else empty
+                    )
+            (Aborted reason, (passed, notRun)) -> do
+              let (reasonDoc, mTree) = explainReason reason
+              inform $
+                vcat
+                  [ text "No."
+                  , text (pack $ unwords [show (passed + 1), plural (passed + 1) "test was" "tests were", "run"])
+                  , text "The following test case failed:"
+                  ]
+                  <> reasonDoc
               maybe (pure ()) drawTree mTree
-              reject (text . pack $
-                "tests passed: " ++ show passed
-                ++ if notRun > 0 -- only show remaining tests if there is at least one test that was not run
-                   then ", tests not run: " ++ show notRun
-                   else "")
+              reject
+                ( text . pack $
+                    "tests passed: "
+                      ++ show passed
+                      ++ if notRun > 0 -- only show remaining tests if there is at least one test that was not run
+                        then ", tests not run: " ++ show notRun
+                        else ""
+                )
 
       case checkForProblems codeAnalysisConfig inProg of
         [] -> pure ()
@@ -209,7 +254,7 @@ consultStringsAndFilter visibleDefs keepVisible hiddenDefs keepHidden = do
 
 taskFilter :: IncludeTask -> Program -> Clause -> Bool
 taskFilter Yes _ = const True
-taskFilter No{} _ = const False
+taskFilter No {} _ = const False
 taskFilter Filtered prog = \clause -> not $ any ((Just True ==) . compareClause clause) prog
   where
     compareClause :: Clause -> Clause -> Maybe Bool
@@ -223,12 +268,12 @@ hiddenFilter Filtered prog = notDefinedByProg
   where
     notDefinedByProg :: Clause -> Bool
     notDefinedByProg x = case extractPredicate $ lhs x of
-      Just (p,k) -> (p,k) `notElem` inputDefs
+      Just (p, k) -> (p, k) `notElem` inputDefs
       Nothing -> error "impossible"
-    inputDefs :: [(Atom,Int)]
+    inputDefs :: [(Atom, Int)]
     inputDefs = mapMaybe (extractPredicate . lhs) prog
-    extractPredicate :: Term -> Maybe (Atom,Int)
-    extractPredicate (Struct p (length -> k)) = Just (p,k)
+    extractPredicate :: Term -> Maybe (Atom, Int)
+    extractPredicate (Struct p (length -> k)) = Just (p, k)
     extractPredicate (Var _) = Nothing
     extractPredicate (Cut _) = Nothing
 
@@ -239,20 +284,24 @@ plural _ _ y = y
 explainReason :: AbortReason Spec (Maybe [Unifier]) -> (Doc, Maybe Graph)
 explainReason = explainResult
   where
-    explainResult (OnErrorMsg x msg)
-      = (nested $ line <> vcat
-        [describeSpec x
-        , text "The following error occurred:" <> nested (line <> text (pack msg))
-        ]
-        , Nothing)
-    explainResult (OnWrong x@(Spec (Hidden _) _ _ _ _) _ _)
-      = (nested $ line <> describeSpec x, Nothing)
-    explainResult (OnWrong x mTree mActual)
-      = (nested $
+    explainResult (OnErrorMsg x msg) =
+      ( nested $
+          line
+            <> vcat
+              [ describeSpec x
+              , text "The following error occurred:" <> nested (line <> text (pack msg))
+              ]
+      , Nothing
+      )
+    explainResult (OnWrong x@(Spec (Hidden _) _ _ _ _) _ _) =
+      (nested $ line <> describeSpec x, Nothing)
+    explainResult (OnWrong x mTree mActual) =
+      ( nested $
           line <> describeSpec x
-          <$$> resultMsg mActual
-            <> treeMsg mTree
-        , mTree)
+            <$$> resultMsg mActual
+              <> treeMsg mTree
+      , mTree
+      )
 
 treeMsg :: Maybe Graph -> Doc
 treeMsg = maybe empty (const (line <> text "Derivation tree:"))
@@ -260,18 +309,21 @@ treeMsg = maybe empty (const (line <> text "Derivation tree:"))
 resultMsg :: Maybe [Unifier] -> Doc
 resultMsg Nothing =
   text "Your submission is not general enough."
-  <$$> text "(Your program does not work correctly on arbitrary data.)"
+    <$$> text "(Your program does not work correctly on arbitrary data.)"
 resultMsg (Just actual) =
-  text "Your" <> align
-    (text " submission gives:"
-    <$$> if null actual then text "false" else (vcat . map (text . pack . printUnifier)) actual)
+  text "Your"
+    <> align
+      ( text " submission gives:"
+          <$$> if null actual then text "false" else (vcat . map (text . pack . printUnifier)) actual
+      )
 
 nested :: Doc -> Doc
 nested = nest 4
 
-{-|
+{- |
 pretty-print the interpreter result
 -}
+
 -- printResult :: [Unifier] -> String
 -- printResult [] = "false"
 -- printResult us = intercalate ";\n" $
@@ -279,39 +331,41 @@ pretty-print the interpreter result
 
 printUnifier :: Unifier -> String
 printUnifier [] = "true"
-printUnifier xs = intercalate ", " $ map (\(x,t) -> show x ++ " = " ++ show t) xs
+printUnifier xs = intercalate ", " $ map (\(x, t) -> show x ++ " = " ++ show t) xs
 
 describeSpec :: Spec -> Doc
-describeSpec (Spec (Hidden str) _ _ _ _) = text . pack $
-  "(a hidden test" ++ str ++")"
+describeSpec (Spec (Hidden str) _ _ _ _) =
+  text . pack $
+    "(a hidden test" ++ str ++ ")"
 describeSpec (Spec Visible _ e _ (StatementToCheck query)) =
   text (pack $ showQuery query)
-  <+> parens (text (pack "expected") <+> describeExp e)
+    <+> parens (text (pack "expected") <+> describeExp e)
   where
     describeExp PositiveResult = text "a positive result"
     describeExp NegativeResult = text "false"
-describeSpec (Spec Visible _ _ _ (QueryWithAnswers query _)) = text . pack $
-  "The result of the query " ++ show (showQuery query) ++ " is incorrect."
+describeSpec (Spec Visible _ _ _ (QueryWithAnswers query _)) =
+  text . pack $
+    "The result of the query " ++ show (showQuery query) ++ " is incorrect."
 describeSpec (Spec Visible _ _ _ (NewPredDecl _ _)) = error "NewPredDecl should not be passed to describeSpec"
 
 showQuery :: Show a => [a] -> String
 showQuery query = "?- " ++ intercalate ", " (map show query) ++ "."
 
-{-| Working with predicates whose name is unknown at configuration time -}
+-- | Working with predicates whose name is unknown at configuration time
 isNewPredDecl :: Spec -> Bool
-isNewPredDecl (Spec _ _ _ _ NewPredDecl{}) = True
+isNewPredDecl (Spec _ _ _ _ NewPredDecl {}) = True
 isNewPredDecl _ = False
 
 requiresNewPredicates :: [Spec] -> Bool
 requiresNewPredicates = any isNewPredDecl
 
-findNewPredicateDefs :: [Spec] -> [Clause] -> (Doc, Maybe [(Term,Atom)])
-findNewPredicateDefs specs clauses = (report,result)
+findNewPredicateDefs :: [Spec] -> [Clause] -> (Doc, Maybe [(Term, Atom)])
+findNewPredicateDefs specs clauses = (report, result)
   where
     newDecls = mapMaybe extractNewDeclArgs specs
-    extractNewDeclArgs (Spec _ _ _ _ (NewPredDecl tl desc)) = Just (tl,desc)
-    extractNewDeclArgs (Spec _ _ _ _ QueryWithAnswers{}) = Nothing
-    extractNewDeclArgs (Spec _ _ _ _ StatementToCheck{}) = Nothing
+    extractNewDeclArgs (Spec _ _ _ _ (NewPredDecl tl desc)) = Just (tl, desc)
+    extractNewDeclArgs (Spec _ _ _ _ QueryWithAnswers {}) = Nothing
+    extractNewDeclArgs (Spec _ _ _ _ StatementToCheck {}) = Nothing
 
     clauseHeads = nub $ termHead . lhs <$> clauses
 
@@ -319,40 +373,44 @@ findNewPredicateDefs specs clauses = (report,result)
     report = vcat $ map reportMatch matching
     result = traverse fromSuccess matching
 
-    match :: (Term,String) -> Maybe (Atom,Int) -> MatchResult
-    match (tl@(Struct _ args) ,desc) (Just (tr,ar))
-      | expectedAr /= ar = WrongArity (desc,expectedAr) (tr,ar)
+    match :: (Term, String) -> Maybe (Atom, Int) -> MatchResult
+    match (tl@(Struct _ args), desc) (Just (tr, ar))
+      | expectedAr /= ar = WrongArity (desc, expectedAr) (tr, ar)
       | otherwise = MatchSuccess tl tr desc
-      where expectedAr = length args
-    match (Struct{} ,desc) Nothing = MissingPredicate desc
+      where
+        expectedAr = length args
+    match (Struct {}, desc) Nothing = MissingPredicate desc
     match _ _ = error "can't match definitions: term is not a predicate"
 
 data MatchResult
   = MatchSuccess Term Atom String
-  | WrongArity (String,Arity) (Atom,Arity)
+  | WrongArity (String, Arity) (Atom, Arity)
   | MissingPredicate String
 
-fromSuccess :: MatchResult -> Maybe (Term,Atom)
-fromSuccess (MatchSuccess tl tr _) = Just (tl,tr)
+fromSuccess :: MatchResult -> Maybe (Term, Atom)
+fromSuccess (MatchSuccess tl tr _) = Just (tl, tr)
 fromSuccess _ = Nothing
 
 reportMatch :: MatchResult -> Doc
 reportMatch (MatchSuccess _ tr desc) = text $ pack $ "- " <> desc <> ": " <> tr
-reportMatch (WrongArity (desc,expectedAr) (tr,ar)) =
-    text (pack $ "- "<> desc<>":")
-    <$$> indent 4 (
-      text ("Trying to use your definition "<> pack (show tr) <>" but the predicate does not have the correct arity.")
-      <$$>  text (pack $ unwords
-        [ "Expected a predicate with"
-        , show expectedAr
-        , plural expectedAr "argument," "arguments,"
-        , "but"
-        , show tr
-        , "has"
-        , show ar++"."
-        ]
+reportMatch (WrongArity (desc, expectedAr) (tr, ar)) =
+  text (pack $ "- " <> desc <> ":")
+    <$$> indent
+      4
+      ( text ("Trying to use your definition " <> pack (show tr) <> " but the predicate does not have the correct arity.")
+          <$$> text
+            ( pack $
+                unwords
+                  [ "Expected a predicate with"
+                  , show expectedAr
+                  , plural expectedAr "argument," "arguments,"
+                  , "but"
+                  , show tr
+                  , "has"
+                  , show ar ++ "."
+                  ]
+            )
       )
-    )
 reportMatch (MissingPredicate desc) = text $ pack $ "- " <> desc <> ": no definition found"
 
 grabFormatting :: TreeStyle -> GraphFormatting
@@ -365,13 +423,13 @@ containsHeadTailPattern (clause@(Clause hd gs) : clauses) =
   case hasHeadTailPattern hd <> mconcat (map hasHeadTailPattern gs) of
     PatternFound -> Just clause
     DontKnow -> containsHeadTailPattern clauses
-containsHeadTailPattern (ClauseFn{} : clauses) = containsHeadTailPattern clauses
+containsHeadTailPattern (ClauseFn {} : clauses) = containsHeadTailPattern clauses
 
 hasHeadTailPattern :: Term -> HasHeadTailPattern
-hasHeadTailPattern (Struct "." [_,Var _]) = PatternFound
+hasHeadTailPattern (Struct "." [_, Var _]) = PatternFound
 hasHeadTailPattern (Struct _ xs) = mconcat $ map hasHeadTailPattern xs
-hasHeadTailPattern Var{} = DontKnow
-hasHeadTailPattern Cut{} = DontKnow
+hasHeadTailPattern Var {} = DontKnow
+hasHeadTailPattern Cut {} = DontKnow
 
 data HasHeadTailPattern = PatternFound | DontKnow
 

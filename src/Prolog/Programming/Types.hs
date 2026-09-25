@@ -18,40 +18,40 @@ type AllowListMatching = Bool
 
 type ShowSWISHButton = Bool
 
-data TaskConfig = TaskConfig
-  { globalTimeout :: TimeoutDuration,
-    treeStyle :: TreeStyle,
-    includeTask :: IncludeTask,
-    includeHidden :: IncludeHidden,
-    allowListMatching :: AllowListMatching,
-    displaySWISHButton :: ShowSWISHButton,
-    codeAnalysisConfig :: CodeAnalysisConfig,
-    specifications :: [Spec]
+data TaskConfig = TaskConfig {
+  globalTimeout :: TimeoutDuration
+  , treeStyle :: TreeStyle
+  , includeTask :: IncludeTask
+  , includeHidden :: IncludeHidden
+  , allowListMatching :: AllowListMatching
+  , displaySWISHButton :: ShowSWISHButton
+  , codeAnalysisConfig :: CodeAnalysisConfig
+  , specifications :: [Spec]
   }
 
-data Spec = Spec
-  { specVisibility :: Visibility,
-    specVisualize :: Visualize,
-    specExpection :: Expection,
-    specTimeout :: Timeout,
-    specRequirement :: Requirement
+data Spec = Spec {
+  specVisibility :: Visibility
+  , specVisualize :: Visualize
+  , specExpection :: Expection
+  , specTimeout :: Timeout
+  , specRequirement :: Requirement
   }
-  deriving (Show)
+  deriving Show
 
 data Visibility = Hidden String | Visible
-  deriving (Show)
+  deriving Show
 
 data Visualize = ShowTree | DontShowTree
-  deriving (Show)
+  deriving Show
 
 data Expection = PositiveResult | NegativeResult
-  deriving (Show)
+  deriving Show
 
 data Timeout = GlobalTimeout | LocalTimeout Int
-  deriving (Show)
+  deriving Show
 
 data Requirement
   = StatementToCheck [Term]
   | QueryWithAnswers [Term] [[Term]]
   | NewPredDecl Term String
-  deriving (Show)
+  deriving Show

@@ -1,13 +1,15 @@
 {-# LANGUAGE QuasiQuotes #-}
+
 module Prolog.Programming.ExampleConfig where
 
-import Prolog.Programming.Data (Config(..))
+import Prolog.Programming.Data (Config (..))
 
 import qualified Text.RawString.QQ as RS (r)
 
 exampleConfig :: Config
-exampleConfig = Config
-  [RS.r|
+exampleConfig =
+  Config
+    [RS.r|
 # uses the last provided values if fields are provided multiple times
 
 # timeout per test in ms (defaults to 10000)
