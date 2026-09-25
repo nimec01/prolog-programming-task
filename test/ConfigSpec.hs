@@ -10,4 +10,5 @@ spec = describe "ExampleConfig" $ do
   it "example config should be valid" $
     verifyConfig exampleConfig `shouldSatisfy` isJust
   it "rejects config with unknown fields" $
+    -- no-spell-check
     verifyConfig (Config "globalTiimeout: 1000") `shouldSatisfy` isNothing
