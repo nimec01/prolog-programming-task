@@ -139,7 +139,9 @@ configuration = do
             | null xs -> pure ("", "")
             | otherwise -> fail "Provided more than two optional config parts"
 
-        pure (taskCfg, solution, (unlines taskLs, hiddenPart))
+        let solutionStripped = unlines $ filter (not . isPrefixOf "% SOLUTION") $ lines solution
+
+        pure (taskCfg, solutionStripped, (unlines taskLs, hiddenPart))
     _ -> fail "Config does not include the two required parts"
 
 parseSpec :: Parsec String () Spec
