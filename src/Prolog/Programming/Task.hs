@@ -9,7 +9,7 @@
 module Prolog.Programming.Task (
   checkTask,
   displaySampleSolution,
-  exampleConfig,
+  exampleInstance,
   verifyInstance,
   describeTask,
   taskDefinitions,
@@ -19,7 +19,7 @@ module Prolog.Programming.Task (
 ) where
 
 import Prolog.Programming.Data
-import Prolog.Programming.ExampleConfig
+import Prolog.Programming.Examples
 import Prolog.Programming.Helper (Arity, escalateCodeAnalysis, termHead)
 import Prolog.Programming.TestRunner
 
@@ -300,8 +300,8 @@ explainReason = explainResult
       ( nested $
           line
             <> describeSpec x
-              <$$> resultMsg mActual
-            <> treeMsg mTree
+            <$$> resultMsg mActual
+              <> treeMsg mTree
       , mTree
       )
 

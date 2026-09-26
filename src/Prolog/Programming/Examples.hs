@@ -1,15 +1,16 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Prolog.Programming.ExampleConfig where
+module Prolog.Programming.Examples where
 
-import Prolog.Programming.Data (Config (..))
-
+import Prolog.Programming.Parser (parseInstance)
+import Prolog.Programming.Types (TaskInstance)
 import qualified Text.RawString.QQ as RS (r)
 
-exampleConfig :: Config
-exampleConfig =
-  Config
-    [RS.r|
+exampleInstance :: TaskInstance
+exampleInstance =
+  either (error . ("Invalid task instance:\n" ++) . show) id $
+    parseInstance
+      [RS.r|
 # uses the last provided values if fields are provided multiple times
 
 # timeout per test in ms (defaults to 10000)
