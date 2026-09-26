@@ -30,6 +30,13 @@ data TaskConfig = TaskConfig {
   , specifications :: [Spec]
   }
 
+data TaskInstance = TaskInstance {
+  taskConfig :: TaskConfig
+  , sampleSolution :: String
+  , visiblePredicates :: String
+  , hiddenPredicates :: String
+  }
+
 data Spec = Spec {
   specVisibility :: Visibility
   , specVisualize :: Visualize

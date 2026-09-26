@@ -3,7 +3,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Prolog.Programming.Parser (
-  parseConfig,
+  parseInstance,
   parseSpec,
 ) where
 
@@ -36,6 +36,7 @@ import Prolog.Programming.Types (
   Requirement (..),
   Spec (..),
   TaskConfig (..),
+  TaskInstance (..),
   Timeout (..),
   TreeStyle (..),
   Visibility (..),
@@ -111,17 +112,14 @@ instance FromJSON TaskConfig where
       <*> v .:? "codeAnalysis" .!= defaultCodeAnalysisConfig
       <*> v .:? "specifications" .!= []
 
-parseConfig :: String -> Either ParseError (TaskConfig, String, (String, String))
-parseConfig = parse (configuration <* eof) "(config)"
+parseInstance :: String -> Either ParseError TaskInstance
+parseInstance = parse (configuration <* eof) "(config)"
 
 configuration
   :: Parsec
        String
        ()
-       ( TaskConfig
-       , String
-       , (String, String)
-       )
+       TaskInstance
 configuration = do
   ls <- lines <$> anyChar `manyTill` eof
   case breakWhen ("---" `isPrefixOf`) ls of
@@ -145,7 +143,13 @@ configuration = do
 
         let solutionStripped = unlines $ filter (not . isPrefixOf "% SOLUTION") $ lines solution
 
-        pure (taskCfg, solutionStripped, (unlines taskLs, hiddenPart))
+        pure $
+          TaskInstance {
+            taskConfig = taskCfg
+            , sampleSolution = solutionStripped
+            , visiblePredicates = unlines taskLs
+            , hiddenPredicates = hiddenPart
+            }
     _ -> fail "Config does not include the two required parts"
 
 parseSpec :: Parsec String () Spec
