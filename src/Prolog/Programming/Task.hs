@@ -20,7 +20,7 @@ module Prolog.Programming.Task (
 
 import Prolog.Programming.Data
 import Prolog.Programming.Examples
-import Prolog.Programming.Helper (Arity, escalateCodeAnalysis, termHead)
+import Prolog.Programming.Helper (Arity, escalateSeverity, termHead)
 import Prolog.Programming.TestRunner
 
 import Control.Monad (when)
@@ -88,7 +88,7 @@ verifyInstance inst@TaskInstance {taskConfig = taskCfg@TaskConfig {..}, ..} =
          solutionErrorDisplay
          (const $ pure ())
          (const $ pure ())
-         (inst {taskConfig = escalateCodeAnalysis taskCfg, sampleSolution = undefined})
+         (inst {taskConfig = escalateSeverity taskCfg, sampleSolution = undefined})
          (Code sampleSolution)
 
 describeTask :: TaskInstance -> Doc
@@ -300,8 +300,8 @@ explainReason = explainResult
       ( nested $
           line
             <> describeSpec x
-            <$$> resultMsg mActual
-              <> treeMsg mTree
+              <$$> resultMsg mActual
+            <> treeMsg mTree
       , mTree
       )
 

@@ -1,5 +1,8 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module Prolog.Programming.Types where
 
+import Data.Data (Data)
 import Data.Void (Void)
 import Language.Prolog (Term)
 import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig)
@@ -7,13 +10,14 @@ import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig)
 type TimeoutDuration = Int
 
 data TreeStyle = QueryStyle | ResolutionStyle
+  deriving Data
 
 type IncludeTask = Include ()
 
 type IncludeHidden = Include Void
 
 data Include a = Yes | Filtered | No a
-  deriving Eq
+  deriving (Data, Eq)
 
 type AllowListMatching = Bool
 
@@ -29,6 +33,7 @@ data TaskConfig = TaskConfig {
   , codeAnalysisConfig :: CodeAnalysisConfig
   , specifications :: [Spec]
   }
+  deriving Data
 
 data TaskInstance = TaskInstance {
   taskConfig :: TaskConfig
@@ -44,22 +49,22 @@ data Spec = Spec {
   , specTimeout :: Timeout
   , specRequirement :: Requirement
   }
-  deriving Show
+  deriving (Data, Show)
 
 data Visibility = Hidden String | Visible
-  deriving Show
+  deriving (Data, Show)
 
 data Visualize = ShowTree | DontShowTree
-  deriving Show
+  deriving (Data, Show)
 
 data Expection = PositiveResult | NegativeResult
-  deriving Show
+  deriving (Data, Show)
 
 data Timeout = GlobalTimeout | LocalTimeout Int
-  deriving Show
+  deriving (Data, Show)
 
 data Requirement
   = StatementToCheck [Term]
   | QueryWithAnswers [Term] [[Term]]
   | NewPredDecl Term String
-  deriving Show
+  deriving (Data, Show)
