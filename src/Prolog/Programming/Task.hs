@@ -6,7 +6,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Prolog.Programming.Task (
-  checkSyntax,
+  checkTask,
   displaySampleSolution,
   exampleConfig,
   verifyConfig,
@@ -86,7 +86,7 @@ verifyConfig (Config cfg) =
            fail "SWISH Button must not be enabled together with unfiltered hidden predicates."
 
          unless (null sol) $
-           checkSyntax'
+           checkTask'
              solutionErrorDisplay
              (const $ pure ())
              (const $ pure ())
@@ -157,7 +157,7 @@ orError x str = fromRight (error str) x
 
 The procedure aborts once the first check fails.
 -}
-checkSyntax
+checkTask
   :: (MonadIO m, MonadRandom m)
   => (forall a. Doc -> m a)
   -> (Doc -> m ())
@@ -165,11 +165,11 @@ checkSyntax
   -> Config
   -> Code
   -> m ()
-checkSyntax reject inform drawPicture (Config cfg) input =
+checkTask reject inform drawPicture (Config cfg) input =
   let parsedCfg = parseConfig cfg `orError` "config should have been validated earlier"
-  in checkSyntax' reject inform drawPicture parsedCfg input
+  in checkTask' reject inform drawPicture parsedCfg input
 
-checkSyntax'
+checkTask'
   :: (MonadIO m, MonadRandom m)
   => (forall a. Doc -> m a)
   -> (Doc -> m ())
@@ -177,7 +177,7 @@ checkSyntax'
   -> (TaskConfig, String, (String, String))
   -> Code
   -> m ()
-checkSyntax' reject inform drawPicture (TaskConfig {..}, _, (visible_facts, hidden_facts)) (Code input) = do
+checkTask' reject inform drawPicture (TaskConfig {..}, _, (visible_facts, hidden_facts)) (Code input) = do
   let drawTree tree = do
         svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
         drawPicture svg

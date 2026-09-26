@@ -22,7 +22,7 @@ main = do
 runMain :: Config -> Code -> IO ()
 runMain config code = do
   verifyConfig config
-  checkSyntax (fail . show) print writeTreeToDisk config code
+  checkTask (fail . show) print writeTreeToDisk config code
   displaySampleSolution print config
 
 writeTreeToDisk :: BS.ByteString -> IO ()
