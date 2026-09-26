@@ -7,7 +7,7 @@
 
 module Prolog.Programming.Task (
   checkSyntax,
-  checkSemantics,
+  displaySampleSolution,
   exampleConfig,
   verifyConfig,
   describeTask,
@@ -265,14 +265,12 @@ checkSyntax' reject inform drawPicture (TaskConfig {..}, _, (visible_facts, hidd
         [] -> pure ()
         pbs -> either reject inform $ displayProblems pbs
 
-checkSemantics
+displaySampleSolution
   :: (MonadIO m, MonadRandom m)
-  => (forall a. Doc -> m a)
-  -> (Doc -> m ())
+  => (Doc -> m ())
   -> Config
-  -> Code
   -> m ()
-checkSemantics _ inform (Config cfg) _ = do
+displaySampleSolution inform (Config cfg) = do
   let (TaskConfig {}, sol, _) = parseConfig cfg `orError` "config should have been validated earlier"
 
   unless (null sol)
