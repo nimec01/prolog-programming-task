@@ -134,7 +134,11 @@ configuration = do
               | "% SOLUTION" `isInfixOf` a' -> pure (a', b')
               | "% SOLUTION" `isInfixOf` b' -> pure (b', a')
             _ -> fail "Unable to find sample solution."
-          [a] -> let a' = unlines a in if "% SOLUTION" `isInfixOf` a' then pure (a', "") else fail "Unable to find sample solution."
+          [a] ->
+            let a' = unlines a
+            in if "% SOLUTION" `isInfixOf` a'
+                 then pure (a', "")
+                 else fail "Unable to find sample solution."
           xs
             | null xs -> fail "Unable to find sample solution."
             | otherwise -> fail "Provided more config sections than expected."
