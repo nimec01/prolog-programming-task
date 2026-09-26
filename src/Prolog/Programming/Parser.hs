@@ -128,7 +128,7 @@ configuration = do
       Left err -> fail $ show err
       Right taskCfg -> do
         when (length optionalLs > 1) $
-          fail "There is only one optional section allowed."
+          fail "There is only one optional section allowed but multiple provided."
 
         let hiddenPredicates = if null optionalLs then [] else unlines $ head optionalLs
 
@@ -139,7 +139,7 @@ configuration = do
             , visiblePredicates = unlines taskLs
             , hiddenPredicates
             }
-    _ -> fail "Config does not include the two required parts"
+    _ -> fail "Config does not include the required sections: config, task, sample solution"
 
 parseSpec :: Parsec String () Spec
 parseSpec = try newPredDeclParser <|> specLine
