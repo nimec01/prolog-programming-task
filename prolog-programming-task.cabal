@@ -28,6 +28,7 @@ library
   exposed-modules:
       Prolog.Programming.Data
       Prolog.Programming.Task
+      Prolog.Programming.Parser
       Prolog.Programming.CodeAnalysis
       Prolog.Programming.CodeAnalysis.Types
       Prolog.Programming.CodeAnalysis.Config
@@ -36,7 +37,6 @@ library
       Prolog.Programming.CodeAnalysis.Rules.SingletonVariables
       Prolog.Programming.ExampleConfig
       Prolog.Programming.Helper
-      Prolog.Programming.Parser
       Prolog.Programming.TestRunner
       Prolog.Programming.Types
       Paths_prolog_programming_task
