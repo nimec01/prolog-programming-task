@@ -37,13 +37,13 @@ treeStyle: query
 # prefixing a test with [<time out in ms>] sets a local timeout for that test
 specifications:
   - 'a_predicate(Foo,Bar): a_predicate(expected_foo1,expected_bar1), a_predicate(expected_foo2,expected_bar2)'
-  - 'a_statement_that_has_to_be_true.'
+  - 'a_statement_that_has_to_be_true'
   - '!a_predicate_whose_answers_are_hidden(Foo,Bar): a_predicate_whose_answers_are_hidden(expected_foo1,expected_bar1), a_predicate_whose_answers_are_hidden(expected_foo2,expected_bar2)'
-  - '!a_hidden_statement_that_has_to_be_true.'
-  - '!(<description>) a_hidden_statement_that_has_to_be_true_with_a_description_shown_on_failure.'
-  - '@a_test_with_resolution_tree(X).' # only shown if test fails
-  - '-a_statement_that_has_to_be_false.' # also works for all other test statements given above
-  # when combining multiple flags, the order has to be <timeout><negative><tree><hidden><space>*<test>
+  - '!a_hidden_statement_that_has_to_be_true'
+  - '!(<description>) a_hidden_statement_that_has_to_be_true_with_a_description_shown_on_failure'
+  - '@a_test_with_resolution_tree(X)' # only shown if test fails
+  - '-a_statement_that_has_to_be_false' # also works for all other test statements given above
+  # When combining multiple flags, the order has to be: <timeout><negative><tree><hidden><space>*<test>
   - 'new a_predicate_to_define(X): predicate description'
   # Require the definition of a predicate with a user chosen name. Use a_predicate_to_define to refer to this predicate in other tests.
   # New predicates will be mapped to required predicates in the order they are defined.
