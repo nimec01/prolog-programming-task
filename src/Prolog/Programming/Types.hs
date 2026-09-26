@@ -21,11 +21,11 @@ type ShowSWISHButton = Bool
 data TaskConfig = TaskConfig {
   globalTimeout :: TimeoutDuration
   , treeStyle :: TreeStyle
-  , includeTask :: IncludeTask
-  , includeHidden :: IncludeHidden
-  , allowListMatching :: AllowListMatching
-  , displaySWISHButton :: ShowSWISHButton
-  , codeAnalysisConfig :: CodeAnalysisConfig
+  , includeTaskDefinitions :: IncludeTask
+  , includeHiddenDefinitions :: IncludeHidden
+  , allowListPatternMatching :: AllowListMatching
+  , showSWISHButton :: ShowSWISHButton
+  , codeAnalysis :: CodeAnalysisConfig
   , specifications :: [Spec]
   }
 
