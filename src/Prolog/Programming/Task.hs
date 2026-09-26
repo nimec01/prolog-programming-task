@@ -147,7 +147,7 @@ showSWISHButton (Config cfg) = displaySWISHButton
 orError :: Either a b -> String -> b
 orError x str = fromRight (error str) x
 
-{- Runs the following checks in this order:
+{- | Runs the following checks in this order:
 
 1. Does the program parse?
 2. Does the program respect a configured ban of head/tail pattern-matching on lists?
@@ -336,8 +336,8 @@ explainReason = explainResult
       ( nested $
           line
             <> describeSpec x
-            <$$> resultMsg mActual
-              <> treeMsg mTree
+              <$$> resultMsg mActual
+            <> treeMsg mTree
       , mTree
       )
 
