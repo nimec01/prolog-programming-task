@@ -84,14 +84,11 @@ a_test_with_resolution_tree(right_branch) :- fail.
  * The program text will be concatenated with whatever the student submits (subject to include settings).
  */
 ------------------------------
-% SOLUTION
 /* This is the sample solution shown to students after deadline.
+ * It is required and needs to be in the third section.
+ *
  * The provided solution needs to pass all tests and checks specified in the first section of the config.
  * It will be verified on upload.
- *
- * The solution section needs to include this exact comment on a single line to be detected: '% SOLUTION'.
- * That comment will be stripped before showing the solution to students.
- * Other comments will be preserved.
  */
 p(_).
 a_predicate(expected_foo1,expected_bar1).

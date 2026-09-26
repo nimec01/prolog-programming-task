@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -9,7 +10,7 @@ module Prolog.Programming.Parser (
 
 import Control.Monad (void, when)
 
-import Data.List (isInfixOf, isPrefixOf)
+import Data.List (isPrefixOf)
 
 import Language.Prolog (Term, term, terms)
 
@@ -123,32 +124,20 @@ configuration
 configuration = do
   ls <- lines <$> anyChar `manyTill` eof
   case breakWhen ("---" `isPrefixOf`) ls of
-    (rawCfgLs : taskLs : optionalLs) -> case decodeEither' (BS.pack $ unlines rawCfgLs) of
+    (rawCfgLs : taskLs : solutionLs : optionalLs) -> case decodeEither' (BS.pack $ unlines rawCfgLs) of
       Left err -> fail $ show err
       Right taskCfg -> do
-        (solution, hiddenPart) <- case optionalLs of
-          [a, b] -> case map unlines [a, b] of
-            [a', b']
-              | "% SOLUTION" `isInfixOf` a' -> pure (a', b')
-              | "% SOLUTION" `isInfixOf` b' -> pure (b', a')
-            _ -> fail "Unable to find sample solution."
-          [a] ->
-            let a' = unlines a
-            in if "% SOLUTION" `isInfixOf` a'
-                 then pure (a', "")
-                 else fail "Unable to find sample solution."
-          xs
-            | null xs -> fail "Unable to find sample solution."
-            | otherwise -> fail "Provided more config sections than expected."
+        when (length optionalLs > 1) $
+          fail "There is only one optional section allowed."
 
-        let solutionStripped = unlines $ filter (not . isPrefixOf "% SOLUTION") $ lines solution
+        let hiddenPredicates = if null optionalLs then [] else unlines $ head optionalLs
 
         pure $
           TaskInstance {
             taskConfig = taskCfg
-            , sampleSolution = solutionStripped
+            , sampleSolution = unlines solutionLs
             , visiblePredicates = unlines taskLs
-            , hiddenPredicates = hiddenPart
+            , hiddenPredicates
             }
     _ -> fail "Config does not include the two required parts"
 
