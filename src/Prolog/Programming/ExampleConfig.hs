@@ -86,7 +86,6 @@ a_test_with_resolution_tree(right_branch) :- fail. % See test line 5
 ------------------------------
 % SOLUTION
 /* This is the sample solution shown to students after deadline.
- * This section is currently optional but will be required in the future.
  * The provided solution needs to pass all tests and checks specified in the first section of the config.
  * It will be verified on upload.
  *

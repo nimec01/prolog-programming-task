@@ -133,11 +133,11 @@ configuration = do
             [a', b']
               | "% SOLUTION" `isInfixOf` a' -> pure (a', b')
               | "% SOLUTION" `isInfixOf` b' -> pure (b', a')
-            _ -> fail "Unable to find solution from provided optional parts"
-          [a] -> let a' = unlines a in pure $ if "% SOLUTION" `isInfixOf` a' then (a', "") else ("", a')
+            _ -> fail "Unable to find sample solution."
+          [a] -> let a' = unlines a in if "% SOLUTION" `isInfixOf` a' then pure (a', "") else fail "Unable to find sample solution."
           xs
-            | null xs -> pure ("", "")
-            | otherwise -> fail "Provided more than two optional config parts"
+            | null xs -> fail "Unable to find sample solution."
+            | otherwise -> fail "Provided more config sections than expected."
 
         let solutionStripped = unlines $ filter (not . isPrefixOf "% SOLUTION") $ lines solution
 
