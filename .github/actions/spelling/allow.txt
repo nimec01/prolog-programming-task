@@ -20,6 +20,7 @@ mempty
 pbs
 rhs
 snd
+SYB
 unlines
 unwords
 vsep
