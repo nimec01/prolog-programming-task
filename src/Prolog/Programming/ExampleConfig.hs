@@ -86,12 +86,12 @@ a_test_with_resolution_tree(right_branch) :- fail. % See test line 5
 ------------------------------
 % SOLUTION
 /* This is the sample solution shown to students after deadline.
- * This field is currently optional but will be required in the future.
- * The provided solution needs to pass all tests specified in the first section of the config.
+ * This section is currently optional but will be required in the future.
+ * The provided solution needs to pass all tests and checks specified in the first section of the config.
  * It will be verified on upload.
  *
- * The solution part needs to include this exact comment on a single line to be detected: '% SOLUTION'.
- * This comment will be stripped before showing it to the student.
+ * The solution section needs to include this exact comment on a single line to be detected: '% SOLUTION'.
+ * That comment will be stripped before showing the solution to students.
  * Other comments will be preserved.
  */
 p(_).
@@ -106,10 +106,10 @@ a_statement_that_has_to_be_false :- false.
 a_statement_that_has_to_be_true.
 a_test_with_resolution_tree(foo).
 ------------------------------
-/* This is also part of the program, but is not presented to the student.
+/* Anything that follows here is also part of the program, but is not presented to the student.
  *
  * Be careful to avoid naming clashes to not confuse the student with error messages about code they can't see.
- * Clashes can be avoided by the 'filtered' include setting, but giving priority to the student's version of some
+ * Clashes can be prevented by the 'filtered' include setting, but giving priority to the student's version of some
  * predicate can weaken the test suite.
  *
  * If a data constructor or constant begins with hidden__ then it will not be visible in feedback resulting from query tests.
