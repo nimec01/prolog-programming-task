@@ -78,8 +78,8 @@ specifications:
 a_fact.
 a_clause(Foo) :- a_clause(Foo).
 a_dcg_rule --> a_dcg_rule, [terminal1, terminal2], { prolog_term }.
-a_test_with_resolution_tree(left_branch) :- fail. % See test line 5
-a_test_with_resolution_tree(right_branch) :- fail. % See test line 5
+a_test_with_resolution_tree(left_branch) :- fail.
+a_test_with_resolution_tree(right_branch) :- fail.
 /*
  * The program text will be concatenated with whatever the student submits (subject to include settings).
  */
