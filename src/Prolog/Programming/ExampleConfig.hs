@@ -106,6 +106,7 @@ a_statement_that_has_to_be_true.
 a_test_with_resolution_tree(foo).
 ------------------------------
 /* Anything that follows here is also part of the program, but is not presented to the student.
+ * This section is optional.
  *
  * Be careful to avoid naming clashes to not confuse the student with error messages about code they can't see.
  * Clashes can be prevented by the 'filtered' include setting, but giving priority to the student's version of some
