@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module Prolog.Programming.CodeAnalysis.Types (
   Problem (..),
@@ -12,6 +13,7 @@ module Prolog.Programming.CodeAnalysis.Types (
 )
 where
 
+import Data.Data (Data)
 import Language.Prolog (Clause (..))
 import Text.PrettyPrint.Leijen.Text (Doc)
 
@@ -30,15 +32,15 @@ type Rule = Clause -> [Problem]
 data CodeAnalysisRuleConfig a
   = Ignore
   | Detect {ruleSeverity :: Severity, extraConfig :: a}
-  deriving (Eq, Functor, Show)
+  deriving (Data, Eq, Functor, Show)
 
 newtype SingletonVariablesConfig = SingletonVariablesConfig (CodeAnalysisRuleConfig ())
-  deriving Show
+  deriving (Data, Show)
 
 type AdditionalMessage = Maybe String
 
 newtype CutUsageConfig = CutUsageConfig (CodeAnalysisRuleConfig AdditionalMessage)
-  deriving Show
+  deriving (Data, Show)
 
 -- | Configuration for code analysis checks
 data CodeAnalysisConfig = CodeAnalysisConfig {
@@ -47,7 +49,7 @@ data CodeAnalysisConfig = CodeAnalysisConfig {
   -- | Configuration for cutUsage rule
   , cutUsage :: CutUsageConfig
   }
-  deriving Show
+  deriving (Data, Show)
 
 {- | Classification for seriousness of violation
 
@@ -69,7 +71,7 @@ data Severity
     Example violation: cut operator was used even though the use of it was forbidden
     -}
     Error
-  deriving (Eq, Show)
+  deriving (Data, Eq, Show)
 
 -- | Container for values with attached severity
 data WithSeverity a = WithSeverity {

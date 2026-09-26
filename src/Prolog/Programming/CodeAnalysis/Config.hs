@@ -6,6 +6,7 @@ module Prolog.Programming.CodeAnalysis.Config (
 where
 
 import Data.Maybe (catMaybes)
+import Generics.SYB (everywhere, mkT)
 import Prolog.Programming.CodeAnalysis.Rules.Cuts (cutsRule)
 import Prolog.Programming.CodeAnalysis.Rules.SingletonVariables (singletonVariablesRule)
 import Prolog.Programming.CodeAnalysis.Types (
@@ -41,15 +42,7 @@ defaultCodeAnalysisConfig =
     }
 
 escalateConfiguredRules :: CodeAnalysisConfig -> CodeAnalysisConfig
-escalateConfiguredRules
-  CodeAnalysisConfig {
-    singletonVariables = SingletonVariablesConfig singletonVarsCfg
-    , cutUsage = CutUsageConfig cutsCfg
-    } =
-    CodeAnalysisConfig {
-      singletonVariables = SingletonVariablesConfig $ escalateCARule singletonVarsCfg
-      , cutUsage = CutUsageConfig $ escalateCARule cutsCfg
-      }
-    where
-      escalateCARule Ignore = Ignore
-      escalateCARule (Detect _ extra) = Detect Error extra
+escalateConfiguredRules = everywhere $ mkT toError
+  where
+    toError :: Severity -> Severity
+    toError _ = Error
