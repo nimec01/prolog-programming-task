@@ -1,6 +1,9 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Prolog.Programming.Types where
 
 import Data.Void (Void)
+import GHC.Generics (Generic)
 import Language.Prolog (Term)
 import Prolog.Programming.CodeAnalysis.Types (CodeAnalysisConfig)
 
@@ -28,6 +31,7 @@ data TaskConfig = TaskConfig {
   , codeAnalysis :: CodeAnalysisConfig
   , specifications :: [Spec]
   }
+  deriving Generic
 
 data Spec = Spec {
   specVisibility :: Visibility

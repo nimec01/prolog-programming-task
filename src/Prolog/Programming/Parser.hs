@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Prolog.Programming.Parser (
@@ -32,6 +33,7 @@ import Prolog.Programming.CodeAnalysis.Types (
   SingletonVariablesConfig (..),
  )
 import qualified Prolog.Programming.CodeAnalysis.Types as CA (Severity (..))
+import Prolog.Programming.TypeHelper (recordFieldNames)
 import Prolog.Programming.Types (
   Expection (..),
   Include (..),
@@ -114,7 +116,7 @@ instance FromJSON CutUsageConfig where
 
 instance FromJSON CodeAnalysisConfig where
   parseJSON = withObject "CodeAnalysisConfig" $ \v -> do
-    rejectUnknownFields ["singletonVariables", "cutUsage"] v
+    rejectUnknownFields (recordFieldNames @CodeAnalysisConfig) v
 
     CodeAnalysisConfig
       <$> v .:? "singletonVariables" .!= SingletonVariablesConfig Ignore
@@ -122,17 +124,7 @@ instance FromJSON CodeAnalysisConfig where
 
 instance FromJSON TaskConfig where
   parseJSON = withObject "TaskConfig" $ \v -> do
-    rejectUnknownFields
-      [ "globalTimeout"
-      , "treeStyle"
-      , "includeTaskDefinitions"
-      , "includeHiddenDefinitions"
-      , "allowListPatternMatching"
-      , "showSWISHButton"
-      , "codeAnalysis"
-      , "specifications"
-      ]
-      v
+    rejectUnknownFields (recordFieldNames @TaskConfig) v
 
     TaskConfig
       <$> v .:? "globalTimeout" .!= 10000

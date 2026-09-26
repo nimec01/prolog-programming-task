@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Prolog.Programming.CodeAnalysis.Types (
   Problem (..),
@@ -12,6 +13,7 @@ module Prolog.Programming.CodeAnalysis.Types (
 )
 where
 
+import GHC.Generics (Generic)
 import Language.Prolog (Clause (..))
 import Text.PrettyPrint.Leijen.Text (Doc)
 
@@ -47,7 +49,7 @@ data CodeAnalysisConfig = CodeAnalysisConfig {
   -- | Configuration for cutUsage rule
   , cutUsage :: CutUsageConfig
   }
-  deriving Show
+  deriving (Generic, Show)
 
 {- | Classification for seriousness of violation
 
