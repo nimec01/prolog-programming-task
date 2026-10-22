@@ -51,6 +51,7 @@ import Language.Prolog.GraphViz.Formatting (GraphFormatting, queryStyle, resolut
 import Data.List.Extra (notNull, nubOrd)
 import Data.Tuple.Extra (uncurry3)
 import Prolog.Programming.CodeAnalysis (checkForProblems, displayProblems)
+import Prolog.Programming.CodeAnalysis.Types (CheckStage (..))
 import Prolog.Programming.Types (
   Expection (..),
   Include (..),
@@ -154,9 +155,13 @@ checkTask
   -> Code
   -> m ()
 checkTask reject inform drawPicture TaskInstance {taskConfig = TaskConfig {..}, ..} input = do
-  let drawTree tree = do
-        svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
-        drawPicture svg
+  let
+    drawTree tree = do
+      svg <- liftIO $ asInlineSvgWith (grabFormatting treeStyle) tree
+      drawPicture svg
+    codeChecks stage inProg factProg = case checkForProblems stage codeAnalysis inProg factProg of
+      [] -> pure ()
+      pbs -> either reject inform $ displayProblems pbs
 
   case consultString input of
     Left err -> reject . text . pack $ show err
@@ -183,6 +188,7 @@ checkTask reject inform drawPicture TaskInstance {taskConfig = TaskConfig {..}, 
       let factProg =
             filter (taskFilter includeTaskDefinitions inProg) visiblePredicates
               ++ filter (hiddenFilter includeHiddenDefinitions inProg) hiddenPredicates
+      codeChecks BeforeTests inProg factProg
       testResult <- liftIO $ testRunner globalTimeout factProg inProg specifications newDefs
       case testResult of
         (Finished AllOk, (passed, _)) ->
@@ -233,9 +239,7 @@ checkTask reject inform drawPicture TaskInstance {taskConfig = TaskConfig {..}, 
                     else ""
             )
 
-      case checkForProblems codeAnalysis inProg factProg of
-        [] -> pure ()
-        pbs -> either reject inform $ displayProblems pbs
+      codeChecks AfterTests inProg factProg
 
 displaySampleSolution
   :: (MonadIO m, MonadRandom m)

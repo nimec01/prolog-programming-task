@@ -10,6 +10,7 @@ import Data.Text.Lazy (pack)
 import Language.Prolog (Atom, Goal, Term)
 import Prolog.Programming.CodeAnalysis.Config (configuredRules)
 import Prolog.Programming.CodeAnalysis.Types (
+  CheckStage,
   CodeAnalysisConfig (..),
   Context,
   Problem (..),
@@ -18,8 +19,8 @@ import Prolog.Programming.CodeAnalysis.Types (
  )
 import Text.PrettyPrint.Leijen.Text (Doc, brackets, string, vsep, (<$$>))
 
-checkForProblems :: CodeAnalysisConfig -> [(Atom, [Term], [Goal])] -> Context -> [WithSeverity Problem]
-checkForProblems cfg program = concatMap (traverse ($ program)) . configuredRules cfg
+checkForProblems :: CheckStage -> CodeAnalysisConfig -> [(Atom, [Term], [Goal])] -> Context -> [WithSeverity Problem]
+checkForProblems stage cfg program = concatMap (traverse ($ program)) . configuredRules stage cfg
 
 displayProblems :: [WithSeverity Problem] -> Either Doc Doc
 displayProblems pbs =

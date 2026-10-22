@@ -4,6 +4,7 @@ module Prolog.Programming.CodeAnalysis.Config (
 )
 where
 
+import Data.Bifunctor (first)
 import Data.Maybe (catMaybes)
 import qualified Data.Set as Set (empty, null)
 import Prolog.Programming.CodeAnalysis.Rules.Cuts (cutsChecker)
@@ -13,6 +14,7 @@ import Prolog.Programming.CodeAnalysis.Rules.Recursion (recursionChecker)
 import Prolog.Programming.CodeAnalysis.Rules.SingletonVariables (singletonVariablesChecker)
 import Prolog.Programming.CodeAnalysis.Rules.UngroupedDefinitions (ungroupedDefinitionsChecker)
 import Prolog.Programming.CodeAnalysis.Types (
+  CheckStage (..),
   CodeAnalysisConfig (..),
   CodeAnalysisRuleConfig,
   Context,
@@ -27,8 +29,9 @@ import Prolog.Programming.CodeAnalysis.Types (
   WithSeverity (..),
  )
 
-configuredRules :: CodeAnalysisConfig -> Context -> [WithSeverity ProgramRule]
+configuredRules :: CheckStage -> CodeAnalysisConfig -> Context -> [WithSeverity ProgramRule]
 configuredRules
+  stage
   CodeAnalysisConfig {
     singletonVariables = SingletonVariablesConfig singletonVarsCfg
     , cutUsage = CutUsageConfig cutsCfg
@@ -38,22 +41,24 @@ configuredRules
     , forbiddenPredicates = ForbiddenPredicatesConfig forbiddenPredicatesCfg
     }
   taskAndHiddenDefinitions =
-    catMaybes
-      [ toConfigured singletonVarsCfg (concatMap . const singletonVariablesChecker)
-      , toConfigured cutsCfg (concatMap . cutsChecker)
-      , toConfigured inconsistentAritiesCfg (inconsistentAritiesChecker taskAndHiddenDefinitions)
-      , toConfigured ungroupedDefinitionsCfg (const ungroupedDefinitionsChecker)
-      , toConfigured recursionCfg recursionChecker
-      , configuredForbiddenPredicates
-      ]
+    map fst
+      $ filter ((== stage) . snd)
+      $ catMaybes
+        [ toConfigured singletonVarsCfg (concatMap . const singletonVariablesChecker)
+        , toConfigured cutsCfg (concatMap . cutsChecker)
+        , toConfigured inconsistentAritiesCfg (inconsistentAritiesChecker taskAndHiddenDefinitions)
+        , toConfigured ungroupedDefinitionsCfg (const ungroupedDefinitionsChecker)
+        , toConfigured recursionCfg recursionChecker
+        , configuredForbiddenPredicates
+        ]
     where
-      toConfigured :: CodeAnalysisRuleConfig a -> (a -> ProgramRule) -> Maybe (WithSeverity ProgramRule)
-      toConfigured config build = fmap (build <$>) config
+      toConfigured :: CodeAnalysisRuleConfig a -> (a -> ProgramRule) -> Maybe (WithSeverity ProgramRule, CheckStage)
+      toConfigured config build = fmap (first (build <$>)) config
 
       configuredForbiddenPredicates =
         if Set.null forbiddenPredicatesCfg
           then Nothing
-          else Just $ WithSeverity Error $ concatMap (forbiddenPredicatesChecker forbiddenPredicatesCfg)
+          else Just (WithSeverity Error $ concatMap (forbiddenPredicatesChecker forbiddenPredicatesCfg), BeforeTests)
 
 emptyCodeAnalysisConfig :: CodeAnalysisConfig
 emptyCodeAnalysisConfig =
