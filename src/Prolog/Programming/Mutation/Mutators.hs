@@ -4,7 +4,7 @@ module Prolog.Programming.Mutation.Mutators (
 ) where
 
 import Control.Applicative ((<|>))
-import Data.Bifunctor (Bifunctor (second), first)
+import Data.Bifunctor (second)
 import Data.List.HT (removeEach)
 import Language.Prolog (Goal, Term (..))
 import Prolog.Programming.Mutation.Types (Mutant (..), Mutation (..), Mutator)
@@ -19,15 +19,12 @@ dropClauseMutator prog =
 
 -- | Returns all possible programs where exactly one goal is dropped
 dropGoalMutator :: Mutator
-dropGoalMutator prog = go prog id
+dropGoalMutator = go id
   where
-    go [] _ = []
-    go (c@(n, a, g) : cs) addPrefix =
-      [Mutant (addPrefix $ (n, a, goals) : cs) what | (what, goals) <- dropGoal g] ++ res
-      where
-        res = go cs (addPrefix . (c :))
-
-        dropGoal = map (first (DropGoal c)) . removeEachGoal
+    go _ [] = []
+    go addPrefix (c@(n, a, gs) : cs) =
+      [Mutant (addPrefix $ (n, a, goals) : cs) (DropGoal c goal) | (goal, goals) <- removeEachGoal gs]
+        ++ go (addPrefix . (c :)) cs
 
 removeEachGoal :: [Goal] -> [(Goal, [Goal])]
 removeEachGoal = go id
