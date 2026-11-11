@@ -31,16 +31,16 @@ removeEachGoal = go id
   where
     go _ [] = []
     go addPrefix (g : gs) =
-      map (second (addPrefix . maybe gs (: gs))) (removeWithinGoal g)
+      map (second (addPrefix . maybe gs (: gs))) (removeAlsoWithinGoal g)
         ++ go (addPrefix . (g :)) gs
 
-    removeWithinGoal :: Term -> [(Term, Maybe Term)]
-    removeWithinGoal (Struct name [l, r])
+    removeAlsoWithinGoal :: Goal -> [(Goal, Maybe Goal)]
+    removeAlsoWithinGoal (Struct name [l, r])
       | name `elem` [",", ";"] =
-          map (second (\remaining -> combine name remaining (Just r))) (removeWithinGoal l)
-            ++ map (second (combine name (Just l))) (removeWithinGoal r)
-    removeWithinGoal goal = [(goal, Nothing)]
+          map (second (flip (combine name) $ Just r)) (removeAlsoWithinGoal l)
+            ++ map (second (combine name $ Just l)) (removeAlsoWithinGoal r)
+    removeAlsoWithinGoal goal = [(goal, Nothing)]
 
-    combine :: Atom -> Maybe Term -> Maybe Term -> Maybe Term
-    combine name (Just left) (Just right) = Just $ Struct name [left, right]
-    combine _ left right = left <|> right
+    combine :: Atom -> Maybe Goal -> Maybe Goal -> Maybe Goal
+    combine name (Just l) (Just r) = Just $ Struct name [l, r]
+    combine _ l r = l <|> r
