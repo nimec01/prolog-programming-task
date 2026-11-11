@@ -6,7 +6,7 @@ module Prolog.Programming.Mutation.Mutators (
 import Control.Applicative ((<|>))
 import Data.Bifunctor (second)
 import Data.List.HT (removeEach)
-import Language.Prolog (Goal, Term (..))
+import Language.Prolog (Atom, Goal, Term (..))
 import Prolog.Programming.Mutation.Types (Mutant (..), Mutation (..), Mutator)
 
 -- | Returns all possible programs where one clause is dropped
@@ -34,11 +34,13 @@ removeEachGoal = go id
       map (second (addPrefix . maybe gs (: gs))) (removeWithinGoal g)
         ++ go (addPrefix . (g :)) gs
 
+    removeWithinGoal :: Term -> [(Term, Maybe Term)]
     removeWithinGoal (Struct name [l, r])
       | name `elem` [",", ";"] =
           map (second (\remaining -> combine name remaining (Just r))) (removeWithinGoal l)
             ++ map (second (combine name (Just l))) (removeWithinGoal r)
     removeWithinGoal goal = [(goal, Nothing)]
 
+    combine :: Atom -> Maybe Term -> Maybe Term -> Maybe Term
     combine name (Just left) (Just right) = Just $ Struct name [left, right]
     combine _ left right = left <|> right
